@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LED RGB</string>
+    <string name="action_settings">Settings</string>
+    <string name="one">FragmentOne</string>
+    <string name="two">Tutaj bedzie panel sterujący</string>
+    <string name="tab_connection">Connection</string>
+</resources>
