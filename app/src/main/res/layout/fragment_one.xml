@@ -4,23 +4,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
     tools:context="scott.mymaterialdesign.OneFragment">
 
 
     <android.support.v7.widget.SwitchCompat
         android:theme="@style/MySwitchCompactTheme"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:layout_weight="1"
-        android:text="Bluetooth "
-        android:textOn="Enabled"
-        android:textOff="Disabled"
         android:textAlignment="textStart"
+        android:text="Bluetooth "
         android:background="@color/switch_compount_selector"
         android:id="@+id/enableBluetoothSwitch"/>
+
+        <TextView
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:text="List of paired devices:"/>
+
+        <ListView
+            android:id="@+id/paired_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+
+        </ListView>
 
 
     <!--<TextView-->

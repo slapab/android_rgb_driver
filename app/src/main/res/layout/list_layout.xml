@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#fafafa"
+    >
+
+    <TextView
+        android:id="@+id/id_list_row_name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="@+id/cos_tutaj_mozna_wpisac"
+        android:textColor="#9e9e9e"
+        android:background="@color/list_selector"
+        android:textSize="22px">
+
+
+    </TextView>
+
+</LinearLayout>

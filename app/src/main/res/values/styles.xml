@@ -46,7 +46,7 @@
              which is used to tint widgets -->
         <!--<item name="colorAccent">#000000</item>-->
         <item name="colorControlActivated">#FF2196f3</item>
-        <item name="colorSwitchThumbNormal">#FAFAFA</item>
+        <item name="colorSwitchThumbNormal">#FAFAFA</item> <!--FAFAFA-->
         <item name="colorControlNormal">#1A000000</item>
         <!--<item name="colorControlHighlight">#000000</item>-->
         <!--<item name="android:colorBackgroundCacheHint">#000000</item>-->
