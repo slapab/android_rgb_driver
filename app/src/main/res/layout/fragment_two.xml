@@ -1,18 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/windowBackground"
-    tools:context="scott.mymaterialdesign.TwoFragment">
+    >
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/two"
-        android:textSize="40dp"
-        android:textStyle="bold"
-        android:layout_centerInParent="true"/>
+<ScrollView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/windowBackground"
+        tools:context="scott.mymaterialdesign.TwoFragment">
 
-</RelativeLayout>
+
+
+        <!--Red section-->
+          <TextView
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:text="Red"
+              android:textColor="@android:color/darker_gray"
+              android:gravity="center_horizontal"
+              android:background="#00f44336"
+              android:textSize="20dp"
+              android:textStyle="bold"
+              android:layout_centerInParent="true"/>
+
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal"
+              android:layout_marginTop="6dp"
+              android:layout_marginLeft="6dp"
+              android:layout_marginRight="6dp"
+              >
+
+              <View
+                  android:background="#F0f44336"
+                  android:layout_width="40dp"
+                  android:layout_height="fill_parent"
+                  android:layout_weight="1"
+                  />
+              <android.support.v7.widget.AppCompatSeekBar
+                  android:id="@+id/red_slider"
+                  android:layout_weight="1"
+                  android:max="255"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:paddingLeft="25dp" />
+
+      </LinearLayout>
+
+
+        <!--Green section -->
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center_horizontal"
+            android:background="#0066bb6a"
+            android:text="Green"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            >
+
+            <View
+                android:background="#F066bb6a"
+                android:layout_width="40dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                />
+
+
+            <android.support.v7.widget.AppCompatSeekBar
+                android:id="@+id/green_slider"
+                android:max="255"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="25dp" />
+
+        </LinearLayout>
+
+
+        <!--Blue section -->
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textColor="@android:color/darker_gray"
+            android:text="Blue"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            >
+            <View
+                android:background="#F029b6f6"
+                android:layout_width="40dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                />
+
+            <android.support.v7.widget.AppCompatSeekBar
+                android:id="@+id/blue_slider"
+                android:max="255"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="25dp"
+                 />
+            <!--style="@android:style/Widget.DeviceDefault.Light.SeekBar"-->
+        </LinearLayout>
+
+        <!--separator -->
+        <LinearLayout   xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            >
+            <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+                android:background="@android:drawable/divider_horizontal_bright"
+                android:layout_width="fill_parent"
+                android:layout_height="5dp"
+                />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Additional Options"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:layout_marginTop="15dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Strope function"
+            android:textAlignment="viewStart"
+            />
+
+        <android.support.v7.widget.AppCompatSeekBar
+            android:layout_marginTop="10dp"
+            android:id="@+id/strobe_slider"
+            android:max="60"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingLeft="25dp"
+            />
+
+
+
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:layout_marginTop="20dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Pulse function"
+            android:textAlignment="viewStart"
+            />
+
+        <EditText
+            android:id="@+id/search"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:hint="[ms]"
+            android:inputType="numberDecimal"
+            android:imeOptions="actionDone" />
+
+    </LinearLayout>
+</ScrollView>
+
+</LinearLayout>

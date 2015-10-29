@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_tune_white_24dp);
     }
 
 //    @Override
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new OneFragment(), getString(R.string.tab_connection));
-        adapter.addFragment(new TwoFragment(), "TWO");
+        adapter.addFragment(new TwoFragment(), "Control");
 //        adapter.addFragment(new ThreeFragment(), "THREE");
         viewPager.setAdapter(adapter);
     }
