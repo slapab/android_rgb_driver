@@ -26,6 +26,12 @@
         w activity:
         android:label="@string/app_name"
         -->
+
+
+    <!-- Permisions -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!--For searching local devices-->
+
     <application
         android:allowBackup="true"
 
