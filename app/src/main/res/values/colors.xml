@@ -10,7 +10,7 @@
     <color name="windowBackground">#FFFFFF</color><!--#FFFFFF-->
     <color name="navigationBarColor">#000000</color>
 
-    <color name="textColorSecondary">#757575</color>
+    <color name="textColorSecondary">#757575</color><!--e.g. strips for sliders, frame for checkboxes-->
     <color name="colorAccent">#009688</color> <!--#c8e8ff-->
 
 </resources>

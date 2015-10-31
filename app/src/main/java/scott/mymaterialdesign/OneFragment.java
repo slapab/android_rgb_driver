@@ -62,7 +62,7 @@ public class OneFragment extends Fragment{
 
 
 
-        pairedList = (ListView)frag_view.findViewById(R.id.paired_list) ;
+        //pairedList = (ListView)frag_view.findViewById(R.id.paired_list) ;
         powerBluetoothSw = (SwitchCompat) frag_view.findViewById(R.id.enableBluetoothSwitch) ;
 
 
@@ -74,13 +74,15 @@ public class OneFragment extends Fragment{
     {
         super.onStart();
 
-        ArrayAdapter<String> listAdapter = new ArrayAdapter<String>( getActivity().getApplicationContext(),
-                R.layout.list_layout,
-                R.id.id_list_row_name,
-                values
-        );
-
-        pairedList.setAdapter(listAdapter);
+//
+//        ArrayAdapter<String> listAdapter = new ArrayAdapter<String>( getActivity().getApplicationContext(),
+//                R.layout.list_layout,
+//                R.id.id_list_row_name,
+//                values
+//        );
+//
+//
+//        pairedList.setAdapter(listAdapter);
 
 
         init_powerBluetoothSw() ;
@@ -102,13 +104,6 @@ public class OneFragment extends Fragment{
             else
             {
                 powerBluetoothSw.setChecked(false) ;
-            }
-
-
-            if (data.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED) {
-                // bluetooth module has been disabled
-                if ((powerBluetoothSw != null) && !mBluetoothAdapter.isEnabled())
-                    powerBluetoothSw.setChecked(false);
             }
         } catch( NullPointerException e ) {}
 
@@ -141,6 +136,7 @@ public class OneFragment extends Fragment{
 
     private void init_powerBluetoothSw() {
 
+        // init the switch value onStart() proper to state of bluetooth adapter
         try {
             powerBluetoothSw.setChecked(mBluetoothAdapter.isEnabled());
         }

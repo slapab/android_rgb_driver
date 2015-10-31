@@ -4,49 +4,129 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    tools:context="scott.mymaterialdesign.OneFragment">
+    >
 
-
-    <android.support.v7.widget.SwitchCompat
-        android:theme="@style/MySwitchCompactTheme"
-        android:background="@color/switch_compount_selector"
-        android:layout_width="match_parent"
+    <ScrollView
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textAlignment="textStart"
-        android:text="Bluetooth "
-        android:paddingRight="5dp"
-        android:textSize="16dp"
-        android:id="@+id/enableBluetoothSwitch"
+        android:accessibilityLiveRegion="polite">
 
-        />
-
-
-
-        <TextView
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:text="List of paired devices:"/>
-
-        <ListView
-            android:id="@+id/paired_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            >
-
-        </ListView>
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        tools:context="scott.mymaterialdesign.OneFragment">
 
 
-    <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="@string/one"-->
-        <!--android:textSize="40dp"-->
-        <!--android:textStyle="bold"-->
-        <!--android:layout_centerInParent="true"/>-->
 
+
+
+            <android.support.v7.widget.SwitchCompat
+                android:theme="@style/MySwitchCompactTheme"
+                android:maxWidth="350dp"
+                android:minWidth="200dp"
+                android:layout_width="wrap_content"
+                android:background="@color/switch_compount_selector"
+                android:layout_height="wrap_content"
+                android:textAlignment="textStart"
+
+                android:text="Bluetooth "
+                android:paddingRight="5dp"
+                android:textSize="20sp"
+                android:id="@+id/enableBluetoothSwitch" />
+
+
+
+            <!--<TextView-->
+                <!--android:paddingTop="16dp"-->
+                <!--android:paddingBottom="8dp"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:text="List of paired devices:"/>-->
+
+            <!--<android.support.v7.internal.widget.ListViewCompat-->
+                <!--android:id="@+id/paired_list"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--/>-->
+
+
+            <LinearLayout
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <android.support.v7.widget.CardView
+                    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/elevated_button_card"
+                    card_view:cardElevation="0dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    card_view:cardMaxElevation="8dp"
+                    card_view:contentPadding="0dp"
+                    card_view:cardBackgroundColor="#3fe0e0e0"
+                    card_view:cardCornerRadius="2dp">
+
+
+        <!--android:layout_marginBottom="-2dp"-->
+
+
+                    <Button
+                        android:id="@+id/search_devices_button"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Search Devices"/>
+
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.CardView
+                    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/elevated_button_card2"
+                    card_view:cardElevation="0dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    card_view:cardMaxElevation="8dp"
+                    card_view:contentPadding="0dp"
+
+                    card_view:cardCornerRadius="2dp"
+                    card_view:cardBackgroundColor="#3Fe0e0e0">
+                    <!--  card_view:cardBackgroundColor="#BA2196f3"-->
+                    <Button
+                        android:id="@+id/paried_devicess_button"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Paried Devices"/>
+                </android.support.v7.widget.CardView>
+            </LinearLayout>
+
+
+
+            <!--<android.support.v7.widget.AppCompatButton-->
+                <!--android:id="@+id/pariedButton"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textSize="@dimen/buttons_text_size"-->
+                <!--android:text="Paried devices"-->
+
+                <!--/>-->
+
+
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="@string/one"-->
+                <!--android:textSize="40dp"-->
+                <!--android:textStyle="bold"-->
+                <!--android:layout_centerInParent="true"/>-->
+
+
+    </LinearLayout>
+    </ScrollView>
 </LinearLayout>
