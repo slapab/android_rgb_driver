@@ -102,29 +102,30 @@
                         style="?android:attr/borderlessButtonStyle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Paried Devices"/>
+                        android:text="Paried Devices"
+                        />
                 </android.support.v7.widget.CardView>
             </LinearLayout>
 
 
 
-            <!--<android.support.v7.widget.AppCompatButton-->
-                <!--android:id="@+id/pariedButton"-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:textSize="@dimen/buttons_text_size"-->
-                <!--android:text="Paried devices"-->
+        <!--<android.support.v7.widget.AppCompatButton-->
+        <!--android:id="@+id/pariedButton"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:textSize="@dimen/buttons_text_size"-->
+        <!--android:text="Paried devices"-->
 
-                <!--/>-->
+        <!--/>-->
 
 
-            <!--<TextView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:text="@string/one"-->
-                <!--android:textSize="40dp"-->
-                <!--android:textStyle="bold"-->
-                <!--android:layout_centerInParent="true"/>-->
+        <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/one"-->
+        <!--android:textSize="40dp"-->
+        <!--android:textStyle="bold"-->
+        <!--android:layout_centerInParent="true"/>-->
 
 
     </LinearLayout>

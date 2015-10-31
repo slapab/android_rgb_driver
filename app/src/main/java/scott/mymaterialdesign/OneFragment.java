@@ -3,6 +3,7 @@ package scott.mymaterialdesign;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,11 +13,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 //import info.androidhive.materialtabs.R;
 
@@ -29,9 +32,17 @@ public class OneFragment extends Fragment{
 
     private ListView pairedList ;
 
+
+    // buttons
+    private Button pairedButton ;
+    private Button searchButton ;
+
     private final String[] values = new String[] { "Device 1", "Device 2" } ;
 
     static final int REQUEST_ENABLE_BT = 1;
+    static final String DIALOG_DEVICES_LIST = "dialog_list_devices";
+
+
 
     public OneFragment() {
 
@@ -64,6 +75,8 @@ public class OneFragment extends Fragment{
 
         //pairedList = (ListView)frag_view.findViewById(R.id.paired_list) ;
         powerBluetoothSw = (SwitchCompat) frag_view.findViewById(R.id.enableBluetoothSwitch) ;
+        pairedButton = (Button) frag_view.findViewById(R.id.paried_devicess_button) ;
+        searchButton = (Button) frag_view.findViewById(R.id.search_devices_button) ;
 
 
         return frag_view ;
@@ -86,7 +99,7 @@ public class OneFragment extends Fragment{
 
 
         init_powerBluetoothSw() ;
-
+        init_buttons() ;
 
     }
 
@@ -160,4 +173,43 @@ public class OneFragment extends Fragment{
             }
         });
     }
+
+    private void init_buttons()
+    {
+        pairedButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                listPairedDevices(v);
+            }
+        });
+    }
+
+
+
+
+    // ACTIONS ON BUTTONS
+
+    private void listPairedDevices( View v )
+    {
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag(DIALOG_DEVICES_LIST);
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+
+
+        // get the paired devices
+        Set<BluetoothDevice> setPairedDevs = mBluetoothAdapter.getBondedDevices();
+
+        // create list dialog
+        SelectDevicesDialog list = SelectDevicesDialog.getInstance(
+                setPairedDevs,
+                SelectDevicesDialog.LIST_TYPE.PAIRED
+        ) ;
+
+        list.show(ft, DIALOG_DEVICES_LIST) ;
+    }
+
+
+
 }
