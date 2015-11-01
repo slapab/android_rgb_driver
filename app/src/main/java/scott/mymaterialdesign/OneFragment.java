@@ -1,32 +1,34 @@
 package scott.mymaterialdesign;
 
 
-import android.app.Activity;
+//import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 //import info.androidhive.materialtabs.R;
 
 
-public class OneFragment extends Fragment{
+public class OneFragment extends Fragment implements SelectDevicesDialog.SelectDeviceListener
+{
 
     private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothDevice mBluetoothDevice ;             // device on which need to connect
 
     private SwitchCompat powerBluetoothSw ;
 
@@ -37,11 +39,23 @@ public class OneFragment extends Fragment{
     private Button pairedButton ;
     private Button searchButton ;
 
+
+
+
+
     private final String[] values = new String[] { "Device 1", "Device 2" } ;
+
+
+
+
+
 
     static final int REQUEST_ENABLE_BT = 1;
     static final String DIALOG_DEVICES_LIST = "dialog_list_devices";
 
+
+    /// used to identify fragment in ViewPager in the main activity
+    public static String TAG = "FRAG_ONE" ;
 
 
     public OneFragment() {
@@ -110,7 +124,7 @@ public class OneFragment extends Fragment{
         // If this is result from enabling bluetooth module
         try {
             if (    (REQUEST_ENABLE_BT == requestCode)
-                    && (Activity.RESULT_OK == resultCode) )
+                    && (AppCompatActivity.RESULT_OK == resultCode) )
             {
                 powerBluetoothSw.setChecked(true) ;
             }
@@ -198,8 +212,10 @@ public class OneFragment extends Fragment{
         ft.addToBackStack(null);
 
 
-        // get the paired devices
-        Set<BluetoothDevice> setPairedDevs = mBluetoothAdapter.getBondedDevices();
+        // get the paired devices into list
+        List<BluetoothDevice> setPairedDevs = new ArrayList<BluetoothDevice>(
+                                        mBluetoothAdapter.getBondedDevices() );
+
 
         // create list dialog
         SelectDevicesDialog list = SelectDevicesDialog.getInstance(
@@ -211,5 +227,15 @@ public class OneFragment extends Fragment{
     }
 
 
-
+    private void listSearchedDevices( View v )
+    {
+        
+    }
+    // implements the onSelectItem from SelectDeviceDialog class
+    @Override
+    public void onSelectedItem(BluetoothDevice dev )
+    {
+        mBluetoothDevice = dev ;
+        Log.v("SelBtDev", dev.getName() + dev.getAddress()) ;
+    }
 }

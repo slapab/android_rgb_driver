@@ -1,8 +1,6 @@
 package scott.mymaterialdesign;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -16,8 +14,6 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+
 
 
     @Override
@@ -60,7 +57,9 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
+
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_tune_white_24dp);
     }
 
@@ -88,13 +87,21 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new OneFragment(), getString(R.string.tab_connection));
-        adapter.addFragment(new TwoFragment(), "Control");
+        ViewPagerAdapter mViewPageAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+        mViewPageAdapter.addFragment(new OneFragment(), getString(R.string.tab_connection));
+        mViewPageAdapter.addFragment(new TwoFragment(), "Control");
 //        adapter.addFragment(new ThreeFragment(), "THREE");
-        viewPager.setAdapter(adapter);
+        viewPager.setAdapter(mViewPageAdapter);
+        viewPager.getCurrentItem();
     }
 
+    public ViewPager getViewPager()
+    {
+        return viewPager ;
+    }
+    public ViewPagerAdapter getViewPagerAdapter() {
+        return (ViewPagerAdapter)viewPager.getAdapter();
+    }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
@@ -109,6 +116,13 @@ public class MainActivity extends AppCompatActivity {
             return mFragmentList.get(position);
         }
 
+
+
+        @Override
+        public long getItemId(int position) {
+            return super.getItemId(position);
+        }
+
         @Override
         public int getCount() {
             return mFragmentList.size();
@@ -118,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
             mFragmentList.add(fragment);
             mFragmentTitleList.add(title);
         }
+
 
         @Override
         public CharSequence getPageTitle(int position) {

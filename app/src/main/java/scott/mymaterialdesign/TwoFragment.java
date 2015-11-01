@@ -12,6 +12,11 @@ import android.view.ViewGroup;
 
 public class TwoFragment extends Fragment{
 
+    /// used to identify fragment in ViewPager in the main activity
+    public static String TAG = "FRAG_TWO" ;
+
+
+
     public TwoFragment() {
         // Required empty public constructor
     }
