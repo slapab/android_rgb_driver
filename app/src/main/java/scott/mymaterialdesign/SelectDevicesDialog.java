@@ -37,7 +37,11 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
     private LIST_TYPE listType ;
     private SelectDeviceListener mListener ;
 
+    private ArrayAdapter<String> listAdapter ;
+
     public enum LIST_TYPE { PAIRED, SEARCHED }
+
+
 
 
     public SelectDevicesDialog() {}
@@ -67,20 +71,12 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
             int currentItemNO = mainActivity.getViewPager().getCurrentItem() ;
             Fragment myFrag = mainActivity.getViewPagerAdapter().getItem( currentItemNO ) ;
 
-//            FragmentManager fragManager = mainActivity.getSupportFragmentManager();
-//            fragManager.getFragments() ;
-            //FragmentTransaction fragTransaction = fragManager.beginTransaction();
-            //Bundle bn = new Bundle() ;
-            //fragManager.getFragment( bn, "" ) ;
-
-
             mListener = (SelectDeviceListener)myFrag;
 
         } catch (ClassCastException e) {
             // The activity doesn't implement the interface, throw exception
             throw new ClassCastException(activity.toString()
                     + " must implement SelectDeviceListener");
-            //Log.v("EXCEPTION", "activity does not implements the SelectDeviceListener") ;
         }
     }
 
@@ -91,7 +87,6 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
         // Use the Builder class for convenient dialog construction
         FragmentActivity fActivity = getActivity() ;
         AlertDialog.Builder builder = new AlertDialog.Builder(fActivity);
-
         // After rotation data are missed ( null ) ( so then create empty dialog and then dismiss )
         try
         {
@@ -100,10 +95,10 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
                     pairedBuiler(builder, fActivity);
                     break;
                 case SEARCHED:
+                    searchingBuilder( builder, fActivity ) ;
                     break;
             }
         } catch ( NullPointerException e ) {}
-
 
         // Create the AlertDialog object and return it
         return builder.create();
@@ -155,12 +150,40 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
         builder.setTitle("Select one of paired devices")
                 /* mListener must be an fragment object which implements its interface */
                 .setAdapter(listAdapter, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which)
-                    {
+                    public void onClick(DialogInterface dialog, int which) {
                         mListener.onSelectedItem(devices.get(which));
                     }
                 });
 
     }
 
+
+    private void searchingBuilder( AlertDialog.Builder builder, FragmentActivity activity)
+    {
+        listAdapter = new ArrayAdapter<String> (
+                activity,
+                android.R.layout.select_dialog_singlechoice) ;
+
+
+        // Show list of paired devices
+        for ( BluetoothDevice item : this.devices )
+        {
+            listAdapter.add( item.getName() + "\n" + item.getAddress() ) ;
+        }
+
+        builder.setTitle("Searching ...")
+                /* mListener must be an fragment object which implements its interface */
+                .setAdapter(listAdapter, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        mListener.onSelectedItem(devices.get(which));
+                    }
+                });
+    }
+
+
+    public void addDataToList ( final BluetoothDevice dev )
+    {
+        listAdapter.add( dev.getName() + "\n" + dev.getAddress() ) ;
+        listAdapter.notifyDataSetChanged();
+    }
 }

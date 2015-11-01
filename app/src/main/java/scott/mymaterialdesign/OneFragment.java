@@ -4,7 +4,10 @@ package scott.mymaterialdesign;
 //import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -34,12 +37,17 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
     private ListView pairedList ;
 
+    private BroadcastReceiver mReceiver ;
+
+    private SelectDevicesDialog listDevicesDialog ;     // Object of Dialog to show bluetooth devices list
 
     // buttons
     private Button pairedButton ;
     private Button searchButton ;
 
 
+
+    private final List<BluetoothDevice> mFoundBtDevs = new ArrayList<BluetoothDevice>() ;
 
 
 
@@ -54,9 +62,6 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     static final String DIALOG_DEVICES_LIST = "dialog_list_devices";
 
 
-    /// used to identify fragment in ViewPager in the main activity
-    public static String TAG = "FRAG_ONE" ;
-
 
     public OneFragment() {
 
@@ -65,6 +70,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     }
 
     @Override
+    // TODO put definition of BroadCastReceiver into new method
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState) ;
 
@@ -73,6 +79,33 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         if ( mBluetoothAdapter == null ) // error, no local bluetooth device
         {}
 
+        // register ACTION_FOUND for getting bluetooth discovered devices
+        // Create a BroadcastReceiver for ACTION_FOUND
+        mReceiver  = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                // When discovery finds a device
+                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    // Get the BluetoothDevice object from the Intent
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                    mFoundBtDevs.add(device) ;
+                    listDevicesDialog.addDataToList(device); // update dialog list
+
+                    Log.v("BT_DEV_FOUND", device.getName() + " / " + device.getAddress()) ;
+                }
+                else if ( BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
+                {
+                    // TODO add here call to update title -> this is not possible I presume
+                    // TODO handle this state somehow - log event because now it is not logged automically
+
+                }
+            }
+        };
+
+        // Register the BroadcastReceiver
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        this.getContext().registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
 
 
     }
@@ -117,6 +150,21 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
     }
 
+
+    @Override
+    // TODO Pack into method all about bluetooth
+    public void onDestroy()
+    {
+        super.onDestroy();
+
+        // Clean up after bluetooth operations
+        this.getContext().unregisterReceiver(mReceiver);
+        if ( mBluetoothAdapter.isDiscovering() ) {
+            mBluetoothAdapter.cancelDiscovery();
+        }
+
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode,
                                     Intent data)
@@ -152,11 +200,10 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
-        }
-        else
-        {
+        } else {
             // disable bluetooth module
-            if (!mBluetoothAdapter.disable()) {} // if disabling module fails
+            if (!mBluetoothAdapter.disable()) {
+            } // if disabling module fails
         }
     }
 
@@ -166,8 +213,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         // init the switch value onStart() proper to state of bluetooth adapter
         try {
             powerBluetoothSw.setChecked(mBluetoothAdapter.isEnabled());
-        }
-        catch ( NullPointerException e ) {}
+        } catch (NullPointerException e ) {}
 
 
 
@@ -175,33 +221,33 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 powerBluetooth(isChecked);
-
-//                 if ( isChecked )
-//                 {
-//                     // showing the list in the dialog
-//                     FragmentTransaction ft = getFragmentManager().beginTransaction();
-//                     SelectDevicesDialog list = new SelectDevicesDialog() ;
-//                     list.show(ft, "dialog_list") ;
-//
-//                 }
             }
         });
     }
 
     private void init_buttons()
     {
+        // list paired button
         pairedButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 listPairedDevices(v);
             }
         });
+
+        // searching button
+        this.searchButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startSearchingDevices(v);
+            }
+        });
+
     }
 
 
 
 
     // ACTIONS ON BUTTONS
-
+    // TODO check if list-dialog can be used from class field like in the startSearchingDevices.
     private void listPairedDevices( View v )
     {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
@@ -226,11 +272,35 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         list.show(ft, DIALOG_DEVICES_LIST) ;
     }
 
-
-    private void listSearchedDevices( View v )
+    private void startSearchingDevices(View v)
     {
-        
+        if (!mBluetoothAdapter.isEnabled()) return ;
+
+
+        mBluetoothAdapter.startDiscovery();
+
+        // Create view with list of found devices
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag(DIALOG_DEVICES_LIST);
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+
+        mFoundBtDevs.clear(); // clear before scanning
+
+        // create list dialog
+        listDevicesDialog = SelectDevicesDialog.getInstance(
+                mFoundBtDevs,
+                SelectDevicesDialog.LIST_TYPE.SEARCHED
+        ) ;
+
+        listDevicesDialog.show(ft, DIALOG_DEVICES_LIST) ;
+
+
     }
+
+
     // implements the onSelectItem from SelectDeviceDialog class
     @Override
     public void onSelectedItem(BluetoothDevice dev )
