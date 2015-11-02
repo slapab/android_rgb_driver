@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -98,7 +99,11 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
                 {
                     // TODO add here call to update title -> this is not possible I presume
                     // TODO handle this state somehow - log event because now it is not logged automically
-
+                    // tutaj sie w ogole nie wykonuje kurde molek
+                    Log.v("FIN", "Discoverying bt dev is over") ;
+                    View coordinatorLayoutView = getActivity().findViewById(R.id.main_coordinator_layout_id);
+                    Snackbar.make( coordinatorLayoutView, "Searching is over", Snackbar.LENGTH_SHORT  )
+                            .show() ;
                 }
             }
         };
@@ -306,6 +311,12 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     public void onSelectedItem(BluetoothDevice dev )
     {
         mBluetoothDevice = dev ;
+        mBluetoothAdapter.cancelDiscovery() ;
+
         Log.v("SelBtDev", dev.getName() + dev.getAddress()) ;
+
+        View coordinatorLayoutView = getActivity().findViewById(R.id.main_coordinator_layout_id);
+        Snackbar.make( coordinatorLayoutView, "Bluetooth dev selected", Snackbar.LENGTH_SHORT  )
+                .show() ;
     }
 }

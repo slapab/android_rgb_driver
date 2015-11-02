@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
 
+
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_tune_white_24dp);
     }
 
@@ -90,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         ViewPagerAdapter mViewPageAdapter = new ViewPagerAdapter(getSupportFragmentManager());
         mViewPageAdapter.addFragment(new OneFragment(), getString(R.string.tab_connection));
         mViewPageAdapter.addFragment(new TwoFragment(), "Control");
-//        adapter.addFragment(new ThreeFragment(), "THREE");
         viewPager.setAdapter(mViewPageAdapter);
         viewPager.getCurrentItem();
     }
