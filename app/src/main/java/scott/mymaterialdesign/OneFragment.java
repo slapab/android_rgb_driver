@@ -4,6 +4,7 @@ package scott.mymaterialdesign;
 //import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,8 +23,10 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 //import info.androidhive.materialtabs.R;
 
@@ -307,16 +310,20 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
 
     // implements the onSelectItem from SelectDeviceDialog class
+    //TODO getting socked and trying to connect to the device will should be done in ahother thread
     @Override
     public void onSelectedItem(BluetoothDevice dev )
     {
+        Log.v("SelBtDev", "Trying to connect to " + dev.getName() + dev.getAddress()) ;
         mBluetoothDevice = dev ;
         mBluetoothAdapter.cancelDiscovery() ;
 
-        Log.v("SelBtDev", dev.getName() + dev.getAddress()) ;
+        ConnectThread connectThread = new ConnectThread(mBluetoothDevice, getActivity()) ;
+        connectThread.setName("ConnectThread") ;
+        connectThread.start() ;
 
         View coordinatorLayoutView = getActivity().findViewById(R.id.main_coordinator_layout_id);
-        Snackbar.make( coordinatorLayoutView, "Bluetooth dev selected", Snackbar.LENGTH_SHORT  )
+        Snackbar.make( coordinatorLayoutView, "BT dev selected, and thread started!", Snackbar.LENGTH_SHORT  )
                 .show() ;
     }
 }
