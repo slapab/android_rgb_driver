@@ -4,4 +4,9 @@
     <string name="one">FragmentOne</string>
     <string name="two">Tutaj bedzie panel sterujący</string>
     <string name="tab_connection">Connection</string>
+    <string name="tab_control">Control</string>
+
+
+    <!-- Buttons strings -->
+    <string name="disconnect_button_str">Disconnect</string>
 </resources>

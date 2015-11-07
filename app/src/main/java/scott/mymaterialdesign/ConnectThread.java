@@ -4,29 +4,36 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+//import android.os.Handler;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.UUID;
 
+import javax.security.auth.callback.CallbackHandler;
+
 /**
  * Created by scott on 03.11.15.
  */
-public class ConnectThread extends Thread
+public class ConnectThread extends Thread //implements Handler.Callback
 {
     private final BluetoothSocket mmSocket;
     private final BluetoothDevice mmDevice;
-    private final Activity mmActivity;
+    private  HandlerThread mThreadHandler;
+    private MessageHandler mMessageQueue;
 
     public final static UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") ;
 
-    private final String TAG = "CONN_TH" ;
+    public final static String TAG = ConnectThread.class.getSimpleName() ;
 
-
-    ConnectThread( final BluetoothDevice device, final Activity activity )
+    public ConnectThread( final BluetoothDevice device, final Activity activity )
     {
+        super(TAG);
         mmDevice = device ;
-        mmActivity = activity ;
 
         BluetoothSocket tmp_sock = null ;
         try {
@@ -39,11 +46,12 @@ public class ConnectThread extends Thread
         mmSocket = tmp_sock ;
     }
 
-
     @Override
     public void run() {
+
         // disable discovering
         BluetoothAdapter.getDefaultAdapter().cancelDiscovery() ;
+
 
         try {
             // Connect the device through the socket. This will block
@@ -66,9 +74,48 @@ public class ConnectThread extends Thread
         //manageConnectedSocket(mmSocket);
         manageConnection() ;
 
+
+
+        // quit the ThreadHandler -> close the inter-threads message queue
+        mThreadHandler.quit();
     }
 
-    public void cancel() {
+    @Override
+    public synchronized void start() {
+
+        // Create and run message queue
+        mThreadHandler = new HandlerThread(TAG+"_MESSAGES") ;
+        mThreadHandler.start();
+
+        // Register an action to receiving the message
+        for ( int i = 0 ; i < 5 ; ++i ) {
+            try {
+                mMessageQueue = new MessageHandler(mThreadHandler.getLooper());
+                break;
+            } catch (NullPointerException ne) {
+                // try for 2ms to connect
+                try {
+                    Thread.sleep(1);
+                } catch ( InterruptedException ie ) {}
+
+            }
+        }
+        // close HandlerThread if cannot get looper
+        if ( mMessageQueue == null ) {
+            mThreadHandler.quit() ;
+            mThreadHandler = null ;
+        }
+
+        super.start();
+    }
+
+
+    public Handler getHandler()
+    {
+        return mMessageQueue;
+    }
+
+    public void closeConnection() {
         try {
             mmSocket.close();
         } catch (IOException e) { }
@@ -83,6 +130,37 @@ public class ConnectThread extends Thread
                 Thread.sleep(1000);
             } catch( InterruptedException e ) {}
 
+        }
+    }
+
+//    @Override
+//    public boolean handleMessage(Message msg) {
+//
+//        if ( msg.getData().getString("KLUCZ1").equals("tak") ) {
+//            Log.v(ConnectThread.TAG, "Received message in the thread( " + Thread.currentThread() + ") " + msg.getData().getString("KLUCZ1"));
+//            return true ;
+//        }
+//        else {
+//            return false;
+//        }
+//    }
+}
+
+
+class MessageHandler extends Handler {
+
+    public MessageHandler(Looper looper) {
+        super(looper);
+    }
+
+
+    @Override
+    public void handleMessage(Message msg) {
+        super.handleMessage(msg);
+
+        if (msg.getData().getString("KLUCZ1").equals("tak")) {
+            Log.v(ConnectThread.TAG, "Received message in the thread( " + Thread.currentThread() + ") " + msg.getData().getString("KLUCZ1"));
+            // send back the message to the main UI
         }
     }
 }
