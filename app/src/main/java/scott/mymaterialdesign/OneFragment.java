@@ -81,12 +81,8 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
         View frag_view = inflater.inflate(R.layout.fragment_one, container, false) ;
 
-
-
-        //pairedList = (ListView)frag_view.findViewById(R.id.paired_list) ;
         powerBluetoothSw = (SwitchCompat) frag_view.findViewById(R.id.enableBluetoothSwitch) ;
         pairedButton = (Button) frag_view.findViewById(R.id.paried_devicess_button) ;
         searchButton = (Button) frag_view.findViewById(R.id.search_devices_button) ;
@@ -195,6 +191,26 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     }
 
 
+
+    // implements the onSelectItem from SelectDeviceDialog class
+    @Override
+    public void onSelectedItem(BluetoothDevice dev )
+    {
+        Log.v(TAG, "Trying to connect to [ " + Thread.currentThread() + " ] " + dev.getName() + dev.getAddress()) ;
+//        mBluetoothDevice = dev ;
+        BluetoothAdapter.getDefaultAdapter().cancelDiscovery() ;
+
+        // Run AsyncTask : Connect task
+        Activity tmp = getActivity() ;
+        new ConnectTask( (Activity)this.mMainActivityNotifier ).execute(dev);
+
+//        View coordinatorLayoutView = getActivity().findViewById(R.id.main_coordinator_layout_id);
+//        Snackbar.make( coordinatorLayoutView, "BT dev selected, and thread started!", Snackbar.LENGTH_SHORT  )
+//                .show() ;
+    }
+
+
+
     /*
     * Private methods
     */
@@ -267,7 +283,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
 
 
-    // ACTIONS ON BUTTONS
+    // ACTIONS FOR BUTTONS
     private void listPairedDevices( View v )
     {
         BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -310,52 +326,5 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     }
 
 
-    // implements the onSelectItem from SelectDeviceDialog class
-    @Override
-    public void onSelectedItem(BluetoothDevice dev )
-    {
-        Log.v(TAG, "Trying to connect to [ " + Thread.currentThread() + " ] " + dev.getName() + dev.getAddress()) ;
-//        mBluetoothDevice = dev ;
-        BluetoothAdapter.getDefaultAdapter().cancelDiscovery() ;
 
-        // Run AsyncTask : Connect task
-        Activity tmp = getActivity() ;
-        new ConnectTask( (Activity)this.mMainActivityNotifier ).execute(dev);
-
-        // end of async task
-
-//        ManageConnectionThread connectThread = new ManageConnectionThread(mBluetoothDevice, m_oneFragHandler ) ;
-//        connectThread.start() ;
-//
-//        while( !connectThread.isAlive() ) ; // hang until thread starts
-//
-//        Handler taskHandler = connectThread.getHandler() ;
-//
-//        Message myMsg = taskHandler.obtainMessage() ;
-//            Bundle data = new Bundle() ;
-//            data.putString("KLUCZ1", "tak");
-//        myMsg.setData(data);
-//
-//        taskHandler.sendMessageAtFrontOfQueue(myMsg) ;
-
-
-
-//        View coordinatorLayoutView = getActivity().findViewById(R.id.main_coordinator_layout_id);
-//        Snackbar.make( coordinatorLayoutView, "BT dev selected, and thread started!", Snackbar.LENGTH_SHORT  )
-//                .show() ;
-    }
-}
-
-
-
-class BluetoothHandler extends Handler
-{
-    private final String TAG = BluetoothHandler.class.getSimpleName() ;
-
-
-    @Override
-    public void handleMessage(Message msg) {
-        super.handleMessage(msg);
-        Log.v(TAG, msg.toString()) ;
-    }
 }

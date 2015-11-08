@@ -76,6 +76,7 @@ public class ConnectTask extends AsyncTask< BluetoothDevice, Void, BluetoothSock
 
         if ( socket == null )  // if connection fails
         {
+            //TODO show dialog that connection failed
             Log.v(TAG, "Cannot connect to the device.") ;
             return ;
         }

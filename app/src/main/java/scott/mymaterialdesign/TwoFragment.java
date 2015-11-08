@@ -120,6 +120,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        // Always have valid pointer to the main Activity
         mMainActivityNotifier = (MainActivityControlConnectionCallback)context ;
     }
 
@@ -135,9 +136,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         // Assign the socket
         mSocket = btSocket ;
 
-        // get the Input and Output streams
-        InputStream isTmp = null ;
-        OutputStream osTmp = null ;
         try
         {
             mInputStream = mSocket.getInputStream();
@@ -193,24 +191,87 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
     private void initUIActions()
     {
+        // Red seek bar
         mRedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            // Send only that change to the thread
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Message msg = mManageQueue.obtainMessage(
+                        ManageConnectionThread.CONTROL_ONLY_RED,
+                        progress, 0) ;
+                mManageQueue.sendMessage(msg);  // send only that change
             }
-
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                sendDataToThread( false );
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            // Send whole "view value" to the thread
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                sendSnapshotData(false);
             }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+
+        // Green seek bar
+        mGreenSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            // Send only that change to the thread
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Message msg = mManageQueue.obtainMessage(
+                        ManageConnectionThread.CONTROL_ONLY_GREEN,
+                        progress, 0) ;
+                mManageQueue.sendMessage(msg);  // send only that change
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            // Send whole "view value" to the thread
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                sendSnapshotData(false);
+            }
+        });
+
+        // Blue seek bar
+        mBlueSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            // Send only that change to the thread
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Message msg = mManageQueue.obtainMessage(
+                        ManageConnectionThread.CONTROL_ONLY_BLUE,
+                        progress, 0) ;
+                mManageQueue.sendMessage(msg);  // send only that change
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            // Send whole "view value" to the thread
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                sendSnapshotData(false);
+            }
+        });
+
+        // Frequency seek bar
+        mFreqSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            // Send only that change to the thread
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Message msg = mManageQueue.obtainMessage(
+                        ManageConnectionThread.CONTROL_ONLY_FREQ,
+                        progress, 0) ;
+                mManageQueue.sendMessage(msg);  // send only that change
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            // Send whole "view value" to the thread
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                sendSnapshotData(false);
+            }
+        });
+
     }
 
 
 
-    private void sendDataToThread( boolean needReply ) {
+    private void sendSnapshotData(boolean needReply) {
 
         // additional futures - checkboxes
         byte addFutures = 0 ;
@@ -249,7 +310,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
 
         Message msg = mManageQueue.obtainMessage() ;
-        msg.what = ManageConnectionThread.MESSAGE_DATA ;
+        msg.what = ManageConnectionThread.CONTROL_WHOLE_DATA;
         msg.setData(data);
         mManageQueue.sendMessage(msg);  // send to the thread
     }
