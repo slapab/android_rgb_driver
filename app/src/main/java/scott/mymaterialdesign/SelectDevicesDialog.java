@@ -1,37 +1,24 @@
 package scott.mymaterialdesign;
 
-//import android.app.Activity;
 import android.app.Activity;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.support.v4.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothDevice;
-//import android.support.v4.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.support.v7.app.AppCompatDialogFragment ;
-
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by scott on 28.10.15.
  */
+
+
+
 public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragment {
 
-    // interface to communicate with main Activity:
-    public interface SelectDeviceListener
-    {
-        public void onSelectedItem( BluetoothDevice dev ) ;
-    }
 
     private List<BluetoothDevice> devices ;
     private LIST_TYPE listType ;
@@ -43,6 +30,11 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
 
 
 
+    // INTERFACE to communicate with main Activity:
+    interface SelectDeviceListener
+    {
+        public void onSelectedItem( BluetoothDevice dev ) ;
+    }
 
     public SelectDevicesDialog() {}
 
@@ -63,15 +55,10 @@ public class SelectDevicesDialog extends AppCompatDialogFragment {//DialogFragme
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        MainActivity mainActivity = (MainActivity)activity ;
 
         // Verify that the host activity implements the callback interface
         try {
-            // Instantiate the SelectDeviceListener so it can send events to the host
-            int currentItemNO = mainActivity.getViewPager().getCurrentItem() ;
-            Fragment myFrag = mainActivity.getViewPagerAdapter().getItem( currentItemNO ) ;
-
-            mListener = (SelectDeviceListener)myFrag;
+            mListener = ( SelectDeviceListener ) getTargetFragment() ;
 
         } catch (ClassCastException e) {
             // The activity doesn't implement the interface, throw exception

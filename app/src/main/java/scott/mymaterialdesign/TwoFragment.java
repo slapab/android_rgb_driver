@@ -2,6 +2,7 @@ package scott.mymaterialdesign;
 
 
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 
 import java.io.IOException;
 
+import scott.mymaterialdesign.interfaces.MainActivityControlConnectionCallback;
 import scott.mymaterialdesign.interfaces.TwoFragmentConnectionCallback;
 
 //import info.androidhive.materialtabs.R;
@@ -20,6 +22,8 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 {
 
     private BluetoothSocket mSocket ;
+
+    private MainActivityControlConnectionCallback mMainActivityNotifier;
 
     // used to identify fragment in ViewPager in the main activity
     private final String TAG = TwoFragment.class.getSimpleName() ;
@@ -33,6 +37,9 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Retain this fragment across configuration changes.
+        setRetainInstance(true);
     }
 
     @Override
@@ -43,6 +50,13 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     }
 
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mMainActivityNotifier = (MainActivityControlConnectionCallback)context ;
+
+        //TODO need to inform the mainActivity that we had a valid BluetoothSocket?
+    }
 
     @Override
     public void onConnected(BluetoothSocket btSocket) {

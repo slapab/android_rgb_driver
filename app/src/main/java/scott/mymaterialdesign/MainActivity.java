@@ -2,11 +2,13 @@ package scott.mymaterialdesign;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -43,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private final String TAG = MainActivity.class.getSimpleName() ;
 
-
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-        // Setting icons
+        // Set icons
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_tune_white_24dp);
 
@@ -71,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements
         mControlFragmentNotifier = (TwoFragmentConnectionCallback)ad.getItemByName(getString(R.string.tab_control)) ;
 
     }
+
+
 
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
@@ -115,38 +119,56 @@ public class MainActivity extends AppCompatActivity implements
         return (ViewPagerAdapter)viewPager.getAdapter();
     }
 
-
-
-    /* Implements the callback function [from OneFragment] */
-    @Override
-    public void onConnected(BluetoothSocket btSocket) {
-        if ( btSocket == null ) return ;
-
-        // TODO what if connection is already established?
-        mConnectionSocket = btSocket ;
-
-        Log.v(TAG, "Received message with the valid socket") ;
-
-
-        // Hide the Search and Paired list buttons
-        // And show the Disconnect button
+    private void setConnectedViewGroup() {
         View v = findViewById(R.id.search_paired_butt_view_group) ;
         v.setVisibility(View.INVISIBLE);
         v = findViewById(R.id.disconnect_button_view_group) ;
         v.setVisibility(View.VISIBLE);
+    }
 
+    private void setDisconnectedViewGroup() {
+        View v = findViewById(R.id.search_paired_butt_view_group) ;
+        v.setVisibility(View.VISIBLE);
+        v = findViewById(R.id.disconnect_button_view_group) ;
+        v.setVisibility(View.INVISIBLE);
+    }
 
-        // Get index of Control tab
+    /* Implements the callback function [from OneFragment] */
+    @Override
+    public void onConnected(BluetoothSocket btSocket) {
+        Log.v(TAG, "Received message with the valid socket") ;
+
+        if ( btSocket == null ) return ;
+
         ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
-        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_control)) ;
-
-        // set visible the control tab
-        viewPager.setCurrentItem( index ) ;
-
-        // Notify the Control Tab [TwoFragment] that connection was established
         TwoFragmentConnectionCallback evHandle =
                 (TwoFragmentConnectionCallback) vpAdapter.getItemByName(
                         getString(R.string.tab_control));
+
+
+        // If currently connection is established
+        if ( mConnectionSocket != null )
+        {
+            // Tell TwoFragment that need to disconnect with this socket
+            // it  should be closed
+            evHandle.onDisconnecting();
+            try {Thread.sleep(200) ;} catch(Exception e){}
+        }
+        mConnectionSocket = btSocket ;
+
+
+        // Hide the Search and Paired list buttons
+        // And show the Disconnect button
+        setConnectedViewGroup();
+
+
+        // Get index of Control tab
+        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_control)) ;
+        // set visible the control tab
+        viewPager.setCurrentItem( index ) ;
+
+
+        // Notify the Control Tab [TwoFragment] that connection was established
         evHandle.onConnected( btSocket ) ;
     }
 
@@ -155,7 +177,6 @@ public class MainActivity extends AppCompatActivity implements
     /* Implements the callback when user want to disconnect from the hardware [from OneFragment] */
     @Override
     public void onDisconnecting() {
-        // TODO implement the onDisconecting() [ Review ]
 
         Log.v(TAG, "Explicitly closing the connection") ;
         // Inform the Control Tab on disconnecting process
@@ -163,10 +184,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Show search and paired list buttons
         // and hide disconnect button
-        View v = findViewById(R.id.search_paired_butt_view_group) ;
-        v.setVisibility(View.VISIBLE);
-        v = findViewById(R.id.disconnect_button_view_group) ;
-        v.setVisibility(View.INVISIBLE);
+        setDisconnectedViewGroup();
 
         mConnectionSocket  = null ;
     }
@@ -177,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onConnectionLost() {
         // TODO implement the onConnectionLost() callback
+
     }
 
 
