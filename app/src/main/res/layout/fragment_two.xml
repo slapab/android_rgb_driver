@@ -160,6 +160,7 @@
             android:textStyle="bold" />
 
         <android.support.v7.widget.AppCompatCheckBox
+            android:id="@+id/strobe_opt_checkbox"
             android:layout_marginTop="15dp"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -181,6 +182,7 @@
 
 
         <android.support.v7.widget.AppCompatCheckBox
+            android:id="@+id/pulse_opt_checkbox"
             android:layout_marginTop="20dp"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -189,7 +191,7 @@
             />
 
         <EditText
-            android:id="@+id/search"
+            android:id="@+id/pulse_opt_time"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:hint="[ms]"

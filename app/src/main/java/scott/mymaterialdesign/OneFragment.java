@@ -43,7 +43,6 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
     private SelectDevicesDialog listDevicesDialog;     // Object of Dialog to show bluetooth devices list
 
-    private BluetoothHandler m_oneFragHandler;         // Message handler from thread
 
     private MainActivityConfigConnectionCallback mMainActivityNotifier ;
 
@@ -66,22 +65,15 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
 
     public OneFragment() {
-
         powerBluetoothSw = null ;
-//        pairedList = null ;
     }
 
     @Override
-    // TODO put definition of BroadCastReceiver into new method
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState) ;
 
         // Retain this fragment across configuration changes.
         setRetainInstance(true);
-
-
-        m_oneFragHandler = new BluetoothHandler(); // create handler for this main UI task
-
     }
 
 
@@ -332,7 +324,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
         // end of async task
 
-//        ConnectThread connectThread = new ConnectThread(mBluetoothDevice, m_oneFragHandler ) ;
+//        ManageConnectionThread connectThread = new ManageConnectionThread(mBluetoothDevice, m_oneFragHandler ) ;
 //        connectThread.start() ;
 //
 //        while( !connectThread.isAlive() ) ; // hang until thread starts

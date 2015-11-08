@@ -4,26 +4,50 @@ package scott.mymaterialdesign;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatSeekBar;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.SeekBar;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import scott.mymaterialdesign.interfaces.MainActivityControlConnectionCallback;
 import scott.mymaterialdesign.interfaces.TwoFragmentConnectionCallback;
-
-//import info.androidhive.materialtabs.R;
+import scott.mymaterialdesign.tasks.ManageConnectionThread;
 
 
 public class TwoFragment extends Fragment implements TwoFragmentConnectionCallback
 {
 
     private BluetoothSocket mSocket ;
+    private InputStream mInputStream ;
+    private OutputStream mOutputStream ;
+
+    private ManageConnectionThread mManageThread ;
+    private Handler mManageQueue ;
 
     private MainActivityControlConnectionCallback mMainActivityNotifier;
+
+
+    // UI elements
+    AppCompatSeekBar mRedSeekBar ;
+    AppCompatSeekBar mGreenSeekBar ;
+    AppCompatSeekBar mBlueSeekBar ;
+    AppCompatSeekBar mFreqSeekBar ;
+
+    AppCompatCheckBox mStrobeOption ;
+    AppCompatCheckBox mPulseOption ;
+    EditText mDimmingTime ;
+
 
     // used to identify fragment in ViewPager in the main activity
     private final String TAG = TwoFragment.class.getSimpleName() ;
@@ -46,16 +70,57 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_two, container, false);
+        View v_frag = inflater.inflate(R.layout.fragment_two, container, false);
+
+        mRedSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.red_slider) ;
+        mGreenSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.green_slider) ;
+        mBlueSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.blue_slider) ;
+        mFreqSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.strobe_slider) ;
+
+        mStrobeOption = (AppCompatCheckBox)v_frag.findViewById(R.id.strobe_opt_checkbox) ;
+        mPulseOption = (AppCompatCheckBox)v_frag.findViewById(R.id.pulse_opt_checkbox) ;
+        mDimmingTime = (EditText)v_frag.findViewById(R.id.pulse_opt_time) ;
+
+
+        return v_frag ;
     }
 
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        initUIActions() ;
+    }
+
+    //TODO Maybe disable bluetooth?
+    @Override
+    public void onDestroy() {
+
+        if (mSocket != null)
+        {
+            Log.v(TAG, "onDestroy(). Closing the connection.") ;
+            try { mSocket.close(); } catch ( IOException e ) { }
+            mSocket = null ;
+        }
+
+        if ((mManageThread != null) && (mManageThread.isAlive()))
+        {
+            Log.v(TAG, "onDestroy(). Interrupting the thread.") ;
+            interruptThread();
+            mManageThread = null ;
+        }
+
+
+        super.onDestroy();
+    }
+
+
+    // TODO on attach notify the main activity about connection ( if socket is open and is using )
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mMainActivityNotifier = (MainActivityControlConnectionCallback)context ;
-
-        //TODO need to inform the mainActivity that we had a valid BluetoothSocket?
     }
 
     @Override
@@ -66,28 +131,126 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         // If the null socket received
         if ( btSocket == null )     return ;
 
+        // TODO what if socket already is open and/or thread is running
         // Assign the socket
         mSocket = btSocket ;
-        // Create and start thread to manage connection
 
+        // get the Input and Output streams
+        InputStream isTmp = null ;
+        OutputStream osTmp = null ;
+        try
+        {
+            mInputStream = mSocket.getInputStream();
+            mOutputStream = mSocket.getOutputStream();
+
+            // Create the thread to manage the connection
+            mManageThread = new ManageConnectionThread(mInputStream, mOutputStream);
+            mManageThread.start() ;
+
+            // get the handler to the message queue
+            mManageQueue = mManageThread.getHandler();
+
+        }
+        catch( IOException ioe )
+        {
+            Log.e(TAG, "Cannot get input/output streams!") ;
+        }
     }
 
     @Override
     public void onDisconnecting() {
-        // TODO implements onConnected()
-
-        Log.v(TAG, "Closing the thread and the socket") ;
-        // Stop the thread.
+        Log.v(TAG, "onDisconnecting() -> Closing the thread and the socket") ;
 
         // Close the connection
+        closeSocket() ;
+        // Stop the thread
+        interruptThread() ;
+    }
+
+
+    private void closeSocket()
+    {
         try {
+            // close the OutputStream and InputStream before
+            mSocket.getOutputStream().close();
+            mSocket.getInputStream().close();
             mSocket.close();
         } catch( IOException ioe ) {
             Log.e(TAG, "Exception while tried to close the socket: " + ioe) ;
         }
-        mSocket = null;
-
+        mSocket = null ;
     }
 
 
+
+    private void interruptThread()
+    {
+        mManageThread.interrupt();
+        try {
+            mManageThread.join();
+        }catch ( InterruptedException ie ) {}
+    }
+
+    private void initUIActions()
+    {
+        mRedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                sendDataToThread( false );
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+    }
+
+
+
+    private void sendDataToThread( boolean needReply ) {
+
+        // additional futures - checkboxes
+        byte addFutures = 0 ;
+        if ( mPulseOption.isChecked() )
+            addFutures |= (byte)(1 << 0) ;   // pulse option
+        if ( mStrobeOption.isChecked() )
+            addFutures |= (byte)(1 << 1) ;   // strobe option
+
+        // TODO handle this option -> some timers or something
+        if ( needReply )
+            addFutures |= (byte)(1 << 2) ;   // needed reply from the hardware
+
+
+        // Frequency
+        byte freq = (byte)mFreqSeekBar.getProgress();
+
+
+        // Create an array of slider values
+        byte[] byte_data =
+                {
+                        (byte)mRedSeekBar.getProgress(),
+                        (byte)mGreenSeekBar.getProgress(),
+                        (byte)mBlueSeekBar.getProgress(),
+                        addFutures,
+                        freq
+                } ;
+
+
+        // The thread need to covert this to the two bytes
+        String time = mDimmingTime.getText().toString();
+
+        // store data into Bundle object
+        Bundle data = new Bundle() ;
+        data.putByteArray(ManageConnectionThread.BUNDLE_BYTEARRAY, byte_data);
+        data.putString(ManageConnectionThread.BUNDLE_TIME, time) ;
+
+
+        Message msg = mManageQueue.obtainMessage() ;
+        msg.what = ManageConnectionThread.MESSAGE_DATA ;
+        msg.setData(data);
+        mManageQueue.sendMessage(msg);  // send to the thread
+    }
 }
