@@ -9,10 +9,13 @@ import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.support.v7.widget.AppCompatCheckBox;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
 
@@ -168,6 +171,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
     private void closeSocket()
     {
+        // todo log here -> problem on disconnecting
         try {
             // close the OutputStream and InputStream before
             mSocket.getOutputStream().close();
@@ -183,10 +187,13 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
     private void interruptThread()
     {
-        mManageThread.interrupt();
-        try {
-            mManageThread.join();
-        }catch ( InterruptedException ie ) {}
+        //TODO log here -> problem on disconnecting
+        if ( (mManageThread != null) && (mManageThread.isAlive())) {
+            mManageThread.interrupt();
+            try {
+                mManageThread.join();
+            } catch (InterruptedException ie) {}
+        }
     }
 
     private void initUIActions()
@@ -196,10 +203,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
             // Send only that change to the thread
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Message msg = mManageQueue.obtainMessage(
-                        ManageConnectionThread.CONTROL_ONLY_RED,
-                        progress, 0) ;
-                mManageQueue.sendMessage(msg);  // send only that change
+                sendOneParameter(ManageConnectionThread.CONTROL_ONLY_RED, progress) ;
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -215,10 +219,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
             // Send only that change to the thread
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Message msg = mManageQueue.obtainMessage(
-                        ManageConnectionThread.CONTROL_ONLY_GREEN,
-                        progress, 0) ;
-                mManageQueue.sendMessage(msg);  // send only that change
+                sendOneParameter(ManageConnectionThread.CONTROL_ONLY_GREEN, progress) ;
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -234,10 +235,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
             // Send only that change to the thread
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Message msg = mManageQueue.obtainMessage(
-                        ManageConnectionThread.CONTROL_ONLY_BLUE,
-                        progress, 0) ;
-                mManageQueue.sendMessage(msg);  // send only that change
+                sendOneParameter(ManageConnectionThread.CONTROL_ONLY_BLUE, progress) ;
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -253,13 +251,13 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
             // Send only that change to the thread
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Message msg = mManageQueue.obtainMessage(
-                        ManageConnectionThread.CONTROL_ONLY_FREQ,
-                        progress, 0) ;
-                mManageQueue.sendMessage(msg);  // send only that change
+                sendOneParameter(ManageConnectionThread.CONTROL_ONLY_FREQ, progress) ;
             }
+
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
             // Send whole "view value" to the thread
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -267,11 +265,55 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
             }
         });
 
+        // Strobe option checkbox
+        mStrobeOption.setOnCheckedChangeListener(new AppCompatCheckBox.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                sendSnapshotData(false);
+            }
+        });
+
+
+        // Pulse option checkbox
+        mPulseOption.setOnCheckedChangeListener(new AppCompatCheckBox.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                sendSnapshotData(false);
+            }
+        });
+
+
+        // Time for pulse option - action on text change
+        mDimmingTime.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                sendSnapshotData(false);
+            }
+        });
+    }
+
+
+
+    private void sendOneParameter( final int what, final int value )
+    {
+        if ( mManageQueue == null )     return ;
+
+        Message msg = mManageQueue.obtainMessage(
+                what,
+                value, 0) ;
+        mManageQueue.sendMessage(msg);  // send only that change
     }
 
 
 
     private void sendSnapshotData(boolean needReply) {
+
+        if ( mManageQueue == null ) return ;
+
 
         // additional futures - checkboxes
         byte addFutures = 0 ;

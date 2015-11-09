@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.AsyncTask;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 import java.io.IOException;
@@ -76,8 +77,13 @@ public class ConnectTask extends AsyncTask< BluetoothDevice, Void, BluetoothSock
 
         if ( socket == null )  // if connection fails
         {
-            //TODO show dialog that connection failed
             Log.v(TAG, "Cannot connect to the device.") ;
+
+            // show dialog for user
+            View coordinatorLayoutView = mainActivity.findViewById(R.id.main_coordinator_layout_id);
+            Snackbar.make(coordinatorLayoutView, "Can not connect to the device!",
+                    Snackbar.LENGTH_LONG).show() ;
+
             return ;
         }
 

@@ -201,12 +201,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         BluetoothAdapter.getDefaultAdapter().cancelDiscovery() ;
 
         // Run AsyncTask : Connect task
-        Activity tmp = getActivity() ;
         new ConnectTask( (Activity)this.mMainActivityNotifier ).execute(dev);
-
-//        View coordinatorLayoutView = getActivity().findViewById(R.id.main_coordinator_layout_id);
-//        Snackbar.make( coordinatorLayoutView, "BT dev selected, and thread started!", Snackbar.LENGTH_SHORT  )
-//                .show() ;
     }
 
 
@@ -214,13 +209,11 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     /*
     * Private methods
     */
-
     private void powerBluetooth( boolean isChecked )
     {
         BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
         if ( isChecked )
         {
-
             // Try to enable bluetooth module
             if (!btAdapter.isEnabled()) // check bluetooth is disabled
             {
@@ -228,9 +221,11 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
         } else {
+            // notify that need to disconnect -> this perform closing socket and finished thread
+            // which manage the connection
+            mMainActivityNotifier.onDisconnecting();
             // disable bluetooth module
-            if (!btAdapter.disable()) {
-            } // if disabling module fails
+            btAdapter.disable();
         }
     }
 
@@ -255,7 +250,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     private void init_buttons()
     {
         // list paired button
-        pairedButton.setOnClickListener(new View.OnClickListener() {
+        this.pairedButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 listPairedDevices(v);

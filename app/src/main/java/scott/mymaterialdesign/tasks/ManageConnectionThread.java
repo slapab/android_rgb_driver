@@ -210,6 +210,8 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
      */
 class DataSnapshot
 {
+    public DataSnapshot() {}
+
     // fields are the data
     private byte[] mFrameData =
             {

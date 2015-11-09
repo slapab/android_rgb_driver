@@ -75,30 +75,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
-
-
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter mViewPageAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
@@ -165,8 +141,11 @@ public class MainActivity extends AppCompatActivity implements
         // Get index of Control tab
         int index = vpAdapter.getItemIndexByName(getString(R.string.tab_control)) ;
         // set visible the control tab
-        viewPager.setCurrentItem( index ) ;
+        viewPager.setCurrentItem(index) ;
 
+        // change icon on the first tab
+        index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
+        tabLayout.getTabAt(index).setIcon(R.drawable.ic_bluetooth_transfer);
 
         // Notify the Control Tab [TwoFragment] that connection was established
         evHandle.onConnected( btSocket ) ;
@@ -179,6 +158,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onDisconnecting() {
 
         Log.v(TAG, "Explicitly closing the connection") ;
+
+        // change icon on the first tab
+        ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
+        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
+        tabLayout.getTabAt(index).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
+
         // Inform the Control Tab on disconnecting process
         mControlFragmentNotifier.onDisconnecting();
 

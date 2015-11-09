@@ -53,8 +53,8 @@
                   android:layout_weight="1"
                   android:max="255"
                   android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:paddingLeft="25dp" />
+                  android:layout_height="30dp"
+                  android:paddingLeft="40dp" />
 
       </LinearLayout>
 
@@ -91,9 +91,9 @@
                 android:id="@+id/green_slider"
                 android:max="255"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="30dp"
                 android:layout_weight="1"
-                android:paddingLeft="25dp" />
+                android:paddingLeft="40dp" />
 
         </LinearLayout>
 
@@ -128,9 +128,9 @@
                 android:id="@+id/blue_slider"
                 android:max="255"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="30dp"
                 android:layout_weight="1"
-                android:paddingLeft="25dp"
+                android:paddingLeft="40dp"
                  />
             <!--style="@android:style/Widget.DeviceDefault.Light.SeekBar"-->
         </LinearLayout>
@@ -171,11 +171,11 @@
         <android.support.v7.widget.AppCompatSeekBar
             android:layout_marginTop="10dp"
             android:id="@+id/strobe_slider"
-            android:max="60"
+            android:max="40"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="30dp"
             android:layout_weight="1"
-            android:paddingLeft="25dp"
+            android:paddingLeft="50dp"
             />
 
 
