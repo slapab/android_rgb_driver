@@ -14,4 +14,11 @@
     <dimen name="custom_tab_layout_height">72dp</dimen>
     <dimen name="buttons_text_size">16dp</dimen>
 
+
+    <!-- Dimensions used in the OneFragment -->
+    <dimen name="bluetooth_on_off_switch">40dp</dimen>
+
+    <!-- Dimension used in the TwoFragment -->
+    <dimen name="color_seekbar_height">40dp</dimen>
+
 </resources>

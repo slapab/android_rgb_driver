@@ -116,18 +116,12 @@ public class MainActivity extends AppCompatActivity implements
 
         if ( btSocket == null ) return ;
 
-        ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
-        TwoFragmentConnectionCallback evHandle =
-                (TwoFragmentConnectionCallback) vpAdapter.getItemByName(
-                        getString(R.string.tab_control));
-
-
         // If currently connection is established
         if ( mConnectionSocket != null )
         {
             // Tell TwoFragment that need to disconnect with this socket
             // it  should be closed
-            evHandle.onDisconnecting();
+            mControlFragmentNotifier.onDisconnecting();
             try {Thread.sleep(200) ;} catch(Exception e){}
         }
         mConnectionSocket = btSocket ;
@@ -136,19 +130,13 @@ public class MainActivity extends AppCompatActivity implements
         // Hide the Search and Paired list buttons
         // And show the Disconnect button
         setConnectedViewGroup();
+        setIconForConnectedState();
 
-
-        // Get index of Control tab
-        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_control)) ;
-        // set visible the control tab
-        viewPager.setCurrentItem(index) ;
-
-        // change icon on the first tab
-        index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
-        tabLayout.getTabAt(index).setIcon(R.drawable.ic_bluetooth_connected_white_24dp);
+        // Switch to control tab
+        switchToTabByName(getString(R.string.tab_control)) ;
 
         // Notify the Control Tab [TwoFragment] that connection was established
-        evHandle.onConnected( btSocket ) ;
+        mControlFragmentNotifier.onConnected( btSocket ) ;
     }
 
 
@@ -159,10 +147,8 @@ public class MainActivity extends AppCompatActivity implements
 
         Log.v(TAG, "Explicitly closing the connection") ;
 
-        // change icon on the first tab
-        ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
-        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
-        tabLayout.getTabAt(index).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
+        // change icon of first tab (control tab)
+        this.setIconForDisconnectedState();
 
         // Inform the Control Tab on disconnecting process
         mControlFragmentNotifier.onDisconnecting();
@@ -170,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements
         // Show search and paired list buttons
         // and hide disconnect button
         setDisconnectedViewGroup();
-
         mConnectionSocket  = null ;
     }
 
@@ -179,10 +164,41 @@ public class MainActivity extends AppCompatActivity implements
     /* Implements the callback when connection has been lost [from TwoFragment]*/
     @Override
     public void onConnectionLost() {
-        // TODO implement the onConnectionLost() callback
+        // Show search and paired list buttons
+        // and hide disconnect button
+        setDisconnectedViewGroup();
+        setIconForDisconnectedState();
+        mConnectionSocket = null ;
 
+        // switch tab connection tab
+        switchToTabByName( getString(R.string.tab_connection));
     }
 
+
+    private void setIconForDisconnectedState()
+    {
+        ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
+        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
+        tabLayout.getTabAt(index).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
+    }
+
+    private void setIconForConnectedState()
+    {
+        ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
+        int index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
+        tabLayout.getTabAt(index).setIcon(R.drawable.ic_bluetooth_connected_white_24dp);
+    }
+
+
+    private void switchToTabByName( final String tabName )
+    {
+        // get the ViewPagerAdapter
+        ViewPagerAdapter vpAdapter = (ViewPagerAdapter)viewPager.getAdapter() ;
+        // Get index of Control tab
+        int index = vpAdapter.getItemIndexByName(tabName) ;
+        // set visible the control tab
+        viewPager.setCurrentItem(index) ;
+    }
 
 
     class ViewPagerAdapter extends FragmentPagerAdapter {

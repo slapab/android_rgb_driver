@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatSeekBar;
@@ -34,7 +35,8 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     private BluetoothSocket mSocket ;
 
     private ManageConnectionThread mManageThread ;
-    private Handler mManageQueue ;
+    private Handler mManageQueue ;          // This is the message handler for ManageConnectionThread
+    private UIMessageHandler mMainQueue ;   // This is the message handler for mainUI thread ;
 
     private MainActivityControlConnectionCallback mMainActivityNotifier;
 
@@ -44,7 +46,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     AppCompatSeekBar mGreenSeekBar ;
     AppCompatSeekBar mBlueSeekBar ;
     AppCompatSeekBar mFreqSeekBar ;
-
     AppCompatCheckBox mStrobeOption ;
     AppCompatCheckBox mPulseOption ;
     EditText mDimmingTime ;
@@ -53,6 +54,28 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     // used to identify fragment in ViewPager in the main activity
     private final String TAG = TwoFragment.class.getSimpleName() ;
 
+    // Class that handles the message from the thread ( ManageConnectionThread )
+    private class UIMessageHandler extends Handler
+    {
+        public UIMessageHandler( Looper looper ) { super(looper) ; }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+
+            if ( ManageConnectionThread.MESSAGE_CONN_LOST == msg.what) {
+                Log.v(TAG, "Received 'connection lost' message. Notifying "
+                        + MainActivity.class.getSimpleName()) ;
+                // Close the thread and socket
+                interruptThread();
+                closeSocket();
+
+                // Notify the MainActivity that connection was lost
+                mMainActivityNotifier.onConnectionLost();
+            }
+        }
+
+    }
 
 
     public TwoFragment() {
@@ -82,7 +105,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         mPulseOption = (AppCompatCheckBox)v_frag.findViewById(R.id.pulse_opt_checkbox) ;
         mDimmingTime = (EditText)v_frag.findViewById(R.id.pulse_opt_time) ;
 
-
         return v_frag ;
     }
 
@@ -94,7 +116,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         initUIActions() ;
     }
 
-    //TODO Maybe disable bluetooth?
     @Override
     public void onDestroy() {
 
@@ -123,27 +144,50 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         super.onAttach(context);
         // Always have valid pointer to the main Activity
         mMainActivityNotifier = (MainActivityControlConnectionCallback)context ;
+
+        // Create message queue handler fo this ( UI Thread's ) queue
+        mMainQueue = new UIMessageHandler( context.getMainLooper() ) ;
+
+        // get new looper for main UI thread and pass it to the thread only if it exists and is running
+        if ( (mManageThread != null) && (mManageThread.isAlive()))
+        {
+            mManageThread.updateParentQueueHandler( mMainQueue );
+        }
     }
 
     @Override
-    public void onConnected(BluetoothSocket btSocket) {
-        // TODO impelements onConnected()
-        Log.v(TAG, "Trying to create thread to manage a bluetooth connection") ;
+    public void onConnected(BluetoothSocket btSocket)
+    {
+        Log.v(TAG, "Received onConnected() signal.") ;
 
         // If the null socket received
         if ( btSocket == null )     return ;
 
-        // TODO what if socket already is open and/or thread is running
+        // if the socket has already opened and/or thread is running then close.
+        if ( (mSocket != null) && (mManageThread != null) )
+        {
+            Log.d(TAG, "Unusual situation detected."
+                    + "Socket and Thread ("+mManageThread.getId()
+                    +") already exist. Trying to close them.");
+            this.closeSocket();
+            this.interruptThread();
+        }
+
+        Log.v(TAG, "Trying to open streams and create new thread.") ;
         // Assign the socket
         mSocket = btSocket ;
-
         try
         {
             InputStream inputStream = mSocket.getInputStream();
             OutputStream outputStream = mSocket.getOutputStream();
 
             // Create the thread to manage the connection
-            mManageThread = new ManageConnectionThread(inputStream, outputStream);
+
+            mManageThread = new ManageConnectionThread(
+                    inputStream,
+                    outputStream,
+                    mMainQueue
+            );
             mManageThread.start() ;
 
             // get the handler to the message queue
@@ -157,47 +201,59 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     }
 
     @Override
-    public void onDisconnecting() {
-        Log.v(TAG, "onDisconnecting() -> Closing the thread and the socket") ;
+    public void onDisconnecting()
+    {
+        Log.v(TAG, "Received onDisconnecting() signal. Closing the thread and the socket.") ;
+
+        // Stop the thread
+        interruptThread() ;
 
         // Close the connection
         closeSocket() ;
-        // Stop the thread
-        interruptThread() ;
     }
 
 
     private void closeSocket()
     {
-        // todo log here -> problem on disconnecting
+        if ( mSocket == null ) return ;
+
+        Log.v(TAG, "Closing the IO streams and socket");
         try
         {
             mSocket.getOutputStream().close();
             mSocket.getInputStream().close();
 
             mSocket.close();
-        } catch( IOException ioe ) {
-            Log.e(TAG, "Exception while tried to close the socket: " + ioe) ;
-        }
-        catch( Exception e ) {}
+            Log.v(TAG, "Streams and socket have been closed.");
+        } catch( Exception e ) {}
 
         mSocket = null ;
     }
 
-
-
     private void interruptThread()
     {
-        //TODO log here -> problem on disconnecting
-
-        // delete the message queue
         if ( mManageQueue != null ) { mManageQueue = null ; }
 
         // closing the thread
         if ( mManageThread != null )
         {
-            mManageThread.interrupt();
+            Log.v(TAG, "Trying to interrupt the thread") ;
+
+            // send the interrupt signal to the thread
+            if ( mManageThread.isAlive())
+            {
+                mManageThread.interrupt();
+                Log.v(TAG, "Interrupt signal has been sent.");
+                // wait some time - thread can be interrupt on its own
+                try { mManageThread.join(300) ;}
+                catch(InterruptedException e) {}
+            }
+            else
+            {
+                Log.v(TAG, "The thread is already dead") ;
+            }
             mManageThread = null;
+
         }
     }
 
@@ -301,8 +357,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         });
     }
 
-
-
     private void sendOneParameter( final int what, final int value )
     {
         if ( (mManageQueue == null) || (mManageThread == null) )     return ;
@@ -312,8 +366,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
                 value, 0) ;
         mManageQueue.sendMessage(msg);  // send only that change
     }
-
-
 
     private void sendSnapshotData(boolean needReply) {
 

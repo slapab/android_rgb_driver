@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -97,20 +98,8 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     {
         super.onStart();
 
-//
-//        ArrayAdapter<String> listAdapter = new ArrayAdapter<String>( getActivity().getApplicationContext(),
-//                R.layout.list_layout,
-//                R.id.id_list_row_name,
-//                values
-//        );
-//
-//
-//        pairedList.setAdapter(listAdapter);
-
-
         init_powerBluetoothSw() ;
         init_buttons() ;
-
     }
 
 
@@ -137,6 +126,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     public void onAttach(Context context) {
         super.onAttach(context);
 
+        // get the interface handler to send notifications to the main activity
         mMainActivityNotifier = (MainActivityConfigConnectionCallback) context;
 
 
@@ -218,7 +208,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
             if (!btAdapter.isEnabled()) // check bluetooth is disabled
             {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                this.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
         } else {
             // notify that need to disconnect -> this perform closing socket and finished thread
@@ -279,9 +269,14 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
 
     // ACTIONS FOR BUTTONS
-    private void listPairedDevices( View v )
-    {
+    private void listPairedDevices( View v ) {
         BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (!btAdapter.isEnabled())
+        {
+            this.showSnackBar(getString(R.string.notify_bluetooth_disabled));
+            return ;
+        }
 
         // get the paired devices into list
         List<BluetoothDevice> setPairedDevs = new ArrayList<BluetoothDevice>(
@@ -302,7 +297,13 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     private void startSearchingDevices(View v)
     {
         BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (!btAdapter.isEnabled()) return ;
+
+        if (!btAdapter.isEnabled())
+        {
+            this.showSnackBar(getString(R.string.notify_bluetooth_disabled));
+            return ;
+        }
+
 
         btAdapter.startDiscovery();
 
@@ -320,6 +321,16 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         listDevicesDialog.show(fm, DIALOG_DEVICES_LIST);
     }
 
+
+    /* Creates the snackbar with message */
+    private void showSnackBar(final String msg)
+    {
+        try {
+            View coordinatorLayoutView = ((MainActivity) mMainActivityNotifier).findViewById(R.id.main_coordinator_layout_id);
+            Snackbar.make(coordinatorLayoutView, msg, Snackbar.LENGTH_LONG)
+                    .show();
+        } catch (Exception e){}
+    }
 
 
 }

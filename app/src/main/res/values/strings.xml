@@ -9,4 +9,8 @@
 
     <!-- Buttons strings -->
     <string name="disconnect_button_str">Disconnect</string>
+
+
+    <!-- String used with dialogs / prompts / etc -->
+    <string name="notify_bluetooth_disabled">Bluetooth is disabled\nPlease turn on bluetooth to use this option.</string>
 </resources>

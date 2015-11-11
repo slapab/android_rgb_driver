@@ -53,7 +53,7 @@
                   android:layout_weight="1"
                   android:max="255"
                   android:layout_width="fill_parent"
-                  android:layout_height="30dp"
+                  android:layout_height="@dimen/color_seekbar_height"
                   android:paddingLeft="40dp" />
 
       </LinearLayout>
@@ -91,7 +91,7 @@
                 android:id="@+id/green_slider"
                 android:max="255"
                 android:layout_width="fill_parent"
-                android:layout_height="30dp"
+                android:layout_height="@dimen/color_seekbar_height"
                 android:layout_weight="1"
                 android:paddingLeft="40dp" />
 
@@ -128,7 +128,7 @@
                 android:id="@+id/blue_slider"
                 android:max="255"
                 android:layout_width="fill_parent"
-                android:layout_height="30dp"
+                android:layout_height="@dimen/color_seekbar_height"
                 android:layout_weight="1"
                 android:paddingLeft="40dp"
                  />

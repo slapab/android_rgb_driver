@@ -28,12 +28,11 @@
 
             <android.support.v7.widget.SwitchCompat
                 android:theme="@style/MySwitchCompactTheme"
-                android:maxWidth="350dp"
-                android:minWidth="200dp"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:background="@color/switch_compount_selector"
                 android:layout_height="wrap_content"
                 android:textAlignment="textStart"
+                android:height="@dimen/bluetooth_on_off_switch"
 
                 android:text="Bluetooth "
                 android:paddingRight="5dp"

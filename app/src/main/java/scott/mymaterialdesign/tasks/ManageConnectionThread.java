@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
         import java.io.OutputStream;
 
+import scott.mymaterialdesign.TwoFragment;
+
 /**
  * Created by scott on 03.11.15.
  */
@@ -20,8 +22,13 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
     private HandlerThread mThreadHandler;  //   The message queue for this thread
     private MessageHandler mMessageQueue;  //   Manages the received messages
 
+    private Handler mParentHandler ;        //   The handler for parent message queue
+
+
     private InputStream mInputStream ;
     private OutputStream mOutputStream ;
+
+
 
     // Frame data
     private DataSnapshot mFrameData ;
@@ -32,13 +39,15 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
     public static final String BUNDLE_BYTEARRAY = "BData" ;
     public static final String BUNDLE_TIME  = "BTime" ;
 
-    // MESSAGE 'what' type
+    // MESSAGE 'what' type that are received
     public static final int CONTROL_WHOLE_DATA = 19900 ;
     public static final int CONTROL_ONLY_RED = 19901 ;
     public static final int CONTROL_ONLY_GREEN = 19902 ;
     public static final int CONTROL_ONLY_BLUE = 19903 ;
     public static final int CONTROL_ONLY_FREQ = 19904 ;
 
+    // MESSAGE 'what' type that are send back
+    public static final int MESSAGE_CONN_LOST = 20001 ;
 
     class MessageHandler extends Handler {
 
@@ -83,18 +92,18 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
 
 
 
-    public ManageConnectionThread(InputStream input, OutputStream output)
+    public ManageConnectionThread(InputStream input, OutputStream output,  Handler mainHandler )
     {
         super(TAG);
         mInputStream = input ;
         mOutputStream = output ;
-        mFrameData = new DataSnapshot() ;
+        mParentHandler = mainHandler ;
+        mFrameData = new DataSnapshot() ;   // creates wrapper for received data from parent class
     }
 
     @Override
     public void run() {
 
-        // TODO do the communicating things
         byte[] data = new byte[3] ;
 
         while(!this.isInterrupted() && ( mThreadHandler != null ) && ( mMessageQueue != null ) )
@@ -106,8 +115,9 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
                 }
             }
             catch( IOException ioe ) {
-                // inform the target that connection was broken
-                // TODO manage IOException while reading
+                Log.v(TAG, "Input stream is invalid. "
+                        + "Sending 'connection lost' message to the UI thread.") ;
+                mParentHandler.sendEmptyMessage(MESSAGE_CONN_LOST) ;
                 break ;
             }
         }
@@ -149,14 +159,26 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
     /* it tries to close the message queue thread and message handler */
     private void killMessageThread()
     {
-        mThreadHandler.interrupt();
-        mThreadHandler = null ;
-        mMessageQueue = null ;
+        try {
+            mThreadHandler.quit();
+            Log.v( TAG, mThreadHandler.getClass().getSimpleName()
+                    + " - the message looper has been closed.") ;
+        }
+        catch ( NullPointerException e) {
+            Log.d( TAG, "Can not interrupt the message queue thread, because the variable is null") ;
+        }
+        // kill the messages queue thread
+
+        mThreadHandler = null;
+        mMessageQueue = null;
     }
 
     public Handler getHandler() {   return mMessageQueue;   }
 
 
+    public void updateParentQueueHandler( Handler mainHandler ){
+        mParentHandler = mainHandler;
+    }
 
 
     /* This method is called from the MessageHandler MessageHandler(): it sends data over bluetooth */
@@ -167,12 +189,10 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
             mOutputStream.write(data);
             retval = true ;
         }
-        catch ( IOException ioe )
-        {
-            // TODO manage IOEsception while writing
-            Log.e(TAG, "Cannot write to the OutputStream! Closing the message thread.") ;
-            // Closing the message thread and delete handler
-            killMessageThread();
+        catch ( IOException ioe ) {
+            Log.e(TAG, "Cannot write to the OutputStream. "
+                    + "Sending 'connection lost' message to the UI thread.");
+            mParentHandler.sendEmptyMessage(MESSAGE_CONN_LOST);
         }
 
         return retval ;
