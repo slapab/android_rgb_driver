@@ -96,7 +96,8 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
 
         // TODO do the communicating things
         byte[] data = new byte[3] ;
-        while(!this.isInterrupted())
+
+        while(!this.isInterrupted() && ( mThreadHandler != null ) && ( mMessageQueue != null ) )
         {
             try {
                 if ( mInputStream.available() >= 3 ) {
@@ -111,8 +112,9 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
             }
         }
 
+        Log.v(TAG, "Exiting.") ;
         // quit the ThreadHandler -> close the thread's message queue
-        mThreadHandler.quit();
+        this.killMessageThread();
     }
 
     @Override
@@ -144,10 +146,20 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
         super.start();
     }
 
+    /* it tries to close the message queue thread and message handler */
+    private void killMessageThread()
+    {
+        mThreadHandler.interrupt();
+        mThreadHandler = null ;
+        mMessageQueue = null ;
+    }
 
     public Handler getHandler() {   return mMessageQueue;   }
 
-    /* Send over bluetooth */
+
+
+
+    /* This method is called from the MessageHandler MessageHandler(): it sends data over bluetooth */
     protected boolean send( final byte[] data )
     {
         boolean retval = false ;
@@ -158,49 +170,14 @@ public class ManageConnectionThread extends Thread //implements Handler.Callback
         catch ( IOException ioe )
         {
             // TODO manage IOEsception while writing
-            Log.e(TAG, "Cannot write to the OutputStream!!") ;
+            Log.e(TAG, "Cannot write to the OutputStream! Closing the message thread.") ;
+            // Closing the message thread and delete handler
+            killMessageThread();
         }
 
         return retval ;
     }
 
-
-    // call this method after received message with data. Need to review definiton once again
-//    private void sendData( Bundle data ) {
-//        byte[] outputData = new byte[10];
-//
-//        outputData[0] = 0x53; // The start byte
-//        outputData[1] = 0x07; // how many bytes are valid data ( not the header bytes )
-//
-//        // Copy the input data to the output data buffer
-//        byte[] preparedArray = data.getByteArray(BUNDLE_BYTEARRAY);
-//        for (int i = 0, j = 2; i < preparedArray.length; ++i, ++j) {
-//            outputData[j] = preparedArray[i];
-//        }
-//
-//        // Convert dimming future from string to integer and then to the bytes
-//        int dimmingTime = 0;
-//        try {
-//            dimmingTime = Integer.parseInt(data.getString(BUNDLE_TIME));
-//        } catch (NumberFormatException e) {
-//        }
-//
-//        outputData[7] = (byte) (dimmingTime >> 8);
-//        outputData[8] = (byte) dimmingTime;
-//
-//        // add the stop byte
-//        outputData[9] = 0x0A;
-//
-//
-//        try {
-//            mOutputStream.write(outputData);
-//        }
-//        catch ( IOException ioe )
-//        {
-//            // TODO manage IOEsception while writing
-//            Log.e(TAG, "Cannot write to the Outputstream!!") ;
-//        }
-//    }
 
 
 }

@@ -32,8 +32,6 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 {
 
     private BluetoothSocket mSocket ;
-    private InputStream mInputStream ;
-    private OutputStream mOutputStream ;
 
     private ManageConnectionThread mManageThread ;
     private Handler mManageQueue ;
@@ -141,11 +139,11 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
         try
         {
-            mInputStream = mSocket.getInputStream();
-            mOutputStream = mSocket.getOutputStream();
+            InputStream inputStream = mSocket.getInputStream();
+            OutputStream outputStream = mSocket.getOutputStream();
 
             // Create the thread to manage the connection
-            mManageThread = new ManageConnectionThread(mInputStream, mOutputStream);
+            mManageThread = new ManageConnectionThread(inputStream, outputStream);
             mManageThread.start() ;
 
             // get the handler to the message queue
@@ -172,14 +170,17 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     private void closeSocket()
     {
         // todo log here -> problem on disconnecting
-        try {
-            // close the OutputStream and InputStream before
+        try
+        {
             mSocket.getOutputStream().close();
             mSocket.getInputStream().close();
+
             mSocket.close();
         } catch( IOException ioe ) {
             Log.e(TAG, "Exception while tried to close the socket: " + ioe) ;
         }
+        catch( Exception e ) {}
+
         mSocket = null ;
     }
 
@@ -188,11 +189,15 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     private void interruptThread()
     {
         //TODO log here -> problem on disconnecting
-        if ( (mManageThread != null) && (mManageThread.isAlive())) {
+
+        // delete the message queue
+        if ( mManageQueue != null ) { mManageQueue = null ; }
+
+        // closing the thread
+        if ( mManageThread != null )
+        {
             mManageThread.interrupt();
-            try {
-                mManageThread.join();
-            } catch (InterruptedException ie) {}
+            mManageThread = null;
         }
     }
 
@@ -300,7 +305,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
     private void sendOneParameter( final int what, final int value )
     {
-        if ( mManageQueue == null )     return ;
+        if ( (mManageQueue == null) || (mManageThread == null) )     return ;
 
         Message msg = mManageQueue.obtainMessage(
                 what,
@@ -312,7 +317,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
     private void sendSnapshotData(boolean needReply) {
 
-        if ( mManageQueue == null ) return ;
+        if ( (mManageQueue == null) || (mManageThread == null) ) return ;
 
 
         // additional futures - checkboxes

@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // change icon on the first tab
         index = vpAdapter.getItemIndexByName(getString(R.string.tab_connection)) ;
-        tabLayout.getTabAt(index).setIcon(R.drawable.ic_bluetooth_transfer);
+        tabLayout.getTabAt(index).setIcon(R.drawable.ic_bluetooth_connected_white_24dp);
 
         // Notify the Control Tab [TwoFragment] that connection was established
         evHandle.onConnected( btSocket ) ;
