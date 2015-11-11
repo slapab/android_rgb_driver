@@ -12,5 +12,6 @@
 
 
     <!-- String used with dialogs / prompts / etc -->
-    <string name="notify_bluetooth_disabled">Bluetooth is disabled\nPlease turn on bluetooth to use this option.</string>
+    <string name="notify_bluetooth_disabled">The Bluetooth is disabled\nPlease turn on bluetooth to use this option.</string>
+    <string name="notify_connection_lost">The connection was lost.</string>
 </resources>

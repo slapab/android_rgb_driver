@@ -2,8 +2,8 @@ package scott.mymaterialdesign;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
-import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -22,25 +22,26 @@ import scott.mymaterialdesign.interfaces.TwoFragmentConnectionCallback;
 
 public class MainActivity extends AppCompatActivity implements
                             MainActivityConfigConnectionCallback, /* When connection was opened or closed explicitly */
-                            MainActivityControlConnectionCallback /* When connection was lost implicitly */
-{
+                            MainActivityControlConnectionCallback /* When connection was lost implicitly */ {
 
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
-    private BluetoothSocket mConnectionSocket ; /*Bluetooth connection socket */
-
     /* Is using to notify the Control fragment [TwoFragment]  */
-    private TwoFragmentConnectionCallback mControlFragmentNotifier ;
+    private TwoFragmentConnectionCallback mControlFragmentNotifier;
 
     /// Saves the actual status of bluetooth module at creating the activity
     /// It is used to sets up the bluetooth state when destroying this app
-    private boolean mBluetoothStateAtStartUp ;
+    private boolean mBluetoothStateAtStartUp;
+    /// sets to true if connection was established and false when there is no connection
+    /// this variable is saved on configuration change
+    private boolean mConnected;
 
+    private final String TAG = MainActivity.class.getSimpleName();
+    private final String SAVE_BLUETOOTH_STATE = "bluetooth_state_at_startup";
+    private final String SAVE_CONNECTION_STATE = "bluetooth_connection_state";
 
-    private final String TAG = MainActivity.class.getSimpleName() ;
-    private final String SAVE_BLUETOOTH_STATE = "bluetooth_state_at_startup" ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,20 +65,15 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_settings_bluetooth_white_24dp);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_tune_white_24dp);
 
+        // sets up the reference to TwoFragment class -> for implementing the interface
+        setNotifierSources();
 
-        // Configure callback handler to the TwoFragment
-        ViewPagerAdapter ad = (ViewPagerAdapter)viewPager.getAdapter();
-        mControlFragmentNotifier = (TwoFragmentConnectionCallback)ad.getItemByName(getString(R.string.tab_control)) ;
-
-
-
-        if ( (savedInstanceState != null) && !savedInstanceState.isEmpty() )
-        {
+        // Restore saved state
+        if ((savedInstanceState != null) && !savedInstanceState.isEmpty()) {
             // Restore the bluetooth status on re creating the activity ( on conf change )
-            mBluetoothStateAtStartUp = savedInstanceState.getBoolean(this.SAVE_BLUETOOTH_STATE) ;
-        }
-        else
-        {
+            mBluetoothStateAtStartUp = savedInstanceState.getBoolean(this.SAVE_BLUETOOTH_STATE);
+            mConnected = savedInstanceState.getBoolean(this.SAVE_CONNECTION_STATE);
+        } else {
             // save current bluetooth configuration when starting for a first time an activity
             mBluetoothStateAtStartUp = BluetoothAdapter.getDefaultAdapter().isEnabled();
         }
@@ -92,19 +88,16 @@ public class MainActivity extends AppCompatActivity implements
 
         // If this is called because of configuration changing
         // then do not take action that will be done on closing when exiting the app
-        if ( isChangingConfigurations() ) return ;
+        if (isChangingConfigurations()) return;
 
 
         // stop discovering
         BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
         // Put the bluetooth module off if was turned off while starting this app
-        if ( BluetoothAdapter.getDefaultAdapter().isEnabled() && !mBluetoothStateAtStartUp )
-        {
-            BluetoothAdapter.getDefaultAdapter().disable() ;
+        if (BluetoothAdapter.getDefaultAdapter().isEnabled() && !mBluetoothStateAtStartUp) {
+            BluetoothAdapter.getDefaultAdapter().disable();
         }
     }
-
-
 
 
     /*
@@ -116,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // store the bluetooth module state which was read when activity started up
         outState.putBoolean(this.SAVE_BLUETOOTH_STATE, mBluetoothStateAtStartUp);
+        outState.putBoolean(this.SAVE_CONNECTION_STATE, mConnected);
     }
 
 
@@ -131,26 +125,31 @@ public class MainActivity extends AppCompatActivity implements
         viewPager.getCurrentItem();
     }
 
-    public ViewPager getViewPager()
-    {
-        return viewPager ;
+    public ViewPager getViewPager() {
+        return viewPager;
     }
+
     public ViewPagerAdapter getViewPagerAdapter() {
-        return (ViewPagerAdapter)viewPager.getAdapter();
+        return (ViewPagerAdapter) viewPager.getAdapter();
     }
 
-    private void setConnectedViewGroup() {
-        View v = findViewById(R.id.search_paired_butt_view_group) ;
-        v.setVisibility(View.INVISIBLE);
-        v = findViewById(R.id.disconnect_button_view_group) ;
-        v.setVisibility(View.VISIBLE);
+    public boolean getConnectionStatus()
+    {
+        return mConnected ;
     }
 
-    private void setDisconnectedViewGroup() {
-        View v = findViewById(R.id.search_paired_butt_view_group) ;
-        v.setVisibility(View.VISIBLE);
-        v = findViewById(R.id.disconnect_button_view_group) ;
-        v.setVisibility(View.INVISIBLE);
+    private void setConnectedViewGroup()
+    {
+        ViewPagerAdapter va = (ViewPagerAdapter)viewPager.getAdapter() ;
+        OneFragment one = (OneFragment)va.getItemByName(getString(R.string.tab_connection)) ;
+        one.setConnectedViewGroup();
+    }
+
+    private void setDisconnectedViewGroup()
+    {
+        ViewPagerAdapter va = (ViewPagerAdapter)viewPager.getAdapter() ;
+        OneFragment one = (OneFragment)va.getItemByName(getString(R.string.tab_connection)) ;
+        one.setDisconnectedViewGroup();
     }
 
     /* Implements the callback function [from OneFragment] */
@@ -160,16 +159,15 @@ public class MainActivity extends AppCompatActivity implements
 
         if ( btSocket == null ) return ;
 
-        // If currently connection is established
-        if ( mConnectionSocket != null )
+        // If currently connection is open
+        if ( mConnected )
         {
             // Tell TwoFragment that need to disconnect with this socket
             // it  should be closed
             mControlFragmentNotifier.onDisconnecting();
             try {Thread.sleep(200) ;} catch(Exception e){}
         }
-        mConnectionSocket = btSocket ;
-
+        mConnected = true;
 
         // Hide the Search and Paired list buttons
         // And show the Disconnect button
@@ -180,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements
         switchToTabByName(getString(R.string.tab_control)) ;
 
         // Notify the Control Tab [TwoFragment] that connection was established
-        mControlFragmentNotifier.onConnected( btSocket ) ;
+        mControlFragmentNotifier.onConnected(btSocket) ;
     }
 
 
@@ -200,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements
         // Show search and paired list buttons
         // and hide disconnect button
         setDisconnectedViewGroup();
-        mConnectionSocket  = null ;
+        mConnected = false;
     }
 
 
@@ -212,10 +210,15 @@ public class MainActivity extends AppCompatActivity implements
         // and hide disconnect button
         setDisconnectedViewGroup();
         setIconForDisconnectedState();
-        mConnectionSocket = null ;
+        mConnected = false ;
 
         // switch tab connection tab
         switchToTabByName( getString(R.string.tab_connection));
+
+        // notify the user that connection was lost
+        View coordinatorLayoutView = findViewById(R.id.main_coordinator_layout_id);
+        Snackbar.make(coordinatorLayoutView, getString(R.string.notify_connection_lost), Snackbar.LENGTH_LONG)
+                .show();
     }
 
 
@@ -233,6 +236,14 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout.getTabAt(index).setIcon(R.drawable.ic_bluetooth_connected_white_24dp);
     }
 
+
+    // This method sets the set the reference to the TwoFragment class.
+    // It is used in separate method because of changing configuration recreate Activities
+    private void setNotifierSources(){
+        // Configure callback handler to the TwoFragment
+        ViewPagerAdapter ad = (ViewPagerAdapter) viewPager.getAdapter();
+        mControlFragmentNotifier = (TwoFragmentConnectionCallback) ad.getItemByName(getString(R.string.tab_control));
+    }
 
     private void switchToTabByName( final String tabName )
     {
@@ -288,6 +299,22 @@ public class MainActivity extends AppCompatActivity implements
             return mFragmentTitleList.indexOf( name ) ;
         }
 
+        /**
+         * This method is used for handling "orientation change" - activity should
+         * have references to fragments which were created at first start
+         * @param name  the name of Fragment which is trying to update
+         * @param frag  reference to the fragment
+         */
+        public void updateItemByName( final String name, final Fragment frag )
+        {
+
+            int index = mFragmentTitleList.indexOf(name);
+            mFragmentList.set( index, frag ) ;
+
+            // Update the references to the notifiers
+            setNotifierSources() ;
+
+        }
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);

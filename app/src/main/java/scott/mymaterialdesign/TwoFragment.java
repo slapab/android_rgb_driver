@@ -108,6 +108,14 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         return v_frag ;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //  IMPORTANT! Update Fragment in the list in MainActivity ( after conf. change )
+        ((MainActivity)mMainActivityNotifier).getViewPagerAdapter()
+                .updateItemByName(getString(R.string.tab_control), this);
+    }
+
 
     @Override
     public void onStart() {

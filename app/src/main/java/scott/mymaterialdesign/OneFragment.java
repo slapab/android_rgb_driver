@@ -53,6 +53,10 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     private Button searchButton;
     private Button disconnectButton ;
 
+    // view groups
+    private View mSearchPairedButtonsViewGroup;
+    private View mDisconnectButtonViewGroup;
+
 
     private final List<BluetoothDevice> mFoundBtDevs = new ArrayList<BluetoothDevice>();
 
@@ -81,6 +85,7 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View frag_view = inflater.inflate(R.layout.fragment_one, container, false) ;
 
@@ -89,7 +94,31 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         searchButton = (Button) frag_view.findViewById(R.id.search_devices_button) ;
         disconnectButton = (Button) frag_view.findViewById(R.id.disconnect_button) ;
 
+        //get the references to view groups
+        mSearchPairedButtonsViewGroup = frag_view.findViewById(R.id.search_paired_butt_view_group) ;
+        mDisconnectButtonViewGroup = frag_view.findViewById(R.id.disconnect_button_view_group) ;
+
+
+        // Because of conf.change check connection status and set proper view for ConnectionTab(this)
+        if (((MainActivity)getActivity()).getConnectionStatus())
+        {
+            this.setConnectedViewGroup();
+        }
+        else
+        {
+            this.setDisconnectedViewGroup();
+        }
+
         return frag_view ;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        //  IMPORTANT! Update Fragment in the list in MainActivity ( after conf. change )
+        ((MainActivity)mMainActivityNotifier).getViewPagerAdapter()
+                .updateItemByName(getString(R.string.tab_connection), this);
     }
 
 
@@ -128,7 +157,6 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
 
         // get the interface handler to send notifications to the main activity
         mMainActivityNotifier = (MainActivityConfigConnectionCallback) context;
-
 
         // register ACTION_FOUND for getting bluetooth discovered devices
         // Create a BroadcastReceiver for ACTION_FOUND
@@ -332,5 +360,16 @@ public class OneFragment extends Fragment implements SelectDevicesDialog.SelectD
         } catch (Exception e){}
     }
 
+    public void setConnectedViewGroup()
+    {
+        mDisconnectButtonViewGroup.setVisibility(View.VISIBLE);
+        mSearchPairedButtonsViewGroup.setVisibility(View.INVISIBLE);
+    }
+
+    public void setDisconnectedViewGroup()
+    {
+        mDisconnectButtonViewGroup.setVisibility(View.INVISIBLE);
+        mSearchPairedButtonsViewGroup.setVisibility(View.VISIBLE);
+    }
 
 }
