@@ -1,28 +1,20 @@
 package scott.mymaterialdesign;
 
-import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
-
-
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import scott.mymaterialdesign.interfaces.MainActivityConfigConnectionCallback ;
 import scott.mymaterialdesign.interfaces.MainActivityControlConnectionCallback ;
 import scott.mymaterialdesign.interfaces.TwoFragmentConnectionCallback;
@@ -42,8 +34,13 @@ public class MainActivity extends AppCompatActivity implements
     /* Is using to notify the Control fragment [TwoFragment]  */
     private TwoFragmentConnectionCallback mControlFragmentNotifier ;
 
+    /// Saves the actual status of bluetooth module at creating the activity
+    /// It is used to sets up the bluetooth state when destroying this app
+    private boolean mBluetoothStateAtStartUp ;
+
 
     private final String TAG = MainActivity.class.getSimpleName() ;
+    private final String SAVE_BLUETOOTH_STATE = "bluetooth_state_at_startup" ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +69,53 @@ public class MainActivity extends AppCompatActivity implements
         ViewPagerAdapter ad = (ViewPagerAdapter)viewPager.getAdapter();
         mControlFragmentNotifier = (TwoFragmentConnectionCallback)ad.getItemByName(getString(R.string.tab_control)) ;
 
+
+
+        if ( (savedInstanceState != null) && !savedInstanceState.isEmpty() )
+        {
+            // Restore the bluetooth status on re creating the activity ( on conf change )
+            mBluetoothStateAtStartUp = savedInstanceState.getBoolean(this.SAVE_BLUETOOTH_STATE) ;
+        }
+        else
+        {
+            // save current bluetooth configuration when starting for a first time an activity
+            mBluetoothStateAtStartUp = BluetoothAdapter.getDefaultAdapter().isEnabled();
+        }
+
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+
+        // If this is called because of configuration changing
+        // then do not take action that will be done on closing when exiting the app
+        if ( isChangingConfigurations() ) return ;
+
+
+        // stop discovering
+        BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+        // Put the bluetooth module off if was turned off while starting this app
+        if ( BluetoothAdapter.getDefaultAdapter().isEnabled() && !mBluetoothStateAtStartUp )
+        {
+            BluetoothAdapter.getDefaultAdapter().disable() ;
+        }
+    }
+
+
+
+
+    /*
+    *   Storing here all 'objs' which may need to be recreated in onCreate()
+    */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // store the bluetooth module state which was read when activity started up
+        outState.putBoolean(this.SAVE_BLUETOOTH_STATE, mBluetoothStateAtStartUp);
     }
 
 
