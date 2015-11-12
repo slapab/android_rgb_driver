@@ -29,49 +29,41 @@ import scott.mymaterialdesign.interfaces.TwoFragmentConnectionCallback;
 import scott.mymaterialdesign.tasks.ManageConnectionThread;
 
 
-public class TwoFragment extends Fragment implements TwoFragmentConnectionCallback
-{
+public class TwoFragment extends Fragment implements TwoFragmentConnectionCallback {
 
-    private BluetoothSocket mSocket ;
+    private BluetoothSocket mSocket;
 
-    private ManageConnectionThread mManageThread ;
-    private Handler mManageQueue ;          // This is the message handler for ManageConnectionThread
-    private UIMessageHandler mMainQueue ;   // This is the message handler for mainUI thread ;
+    private ManageConnectionThread mManageThread;
+    private Handler mManageQueue;          // This is the message handler for ManageConnectionThread
+    private UIMessageHandler mMainQueue;   // This is the message handler for mainUI thread ;
 
     private MainActivityControlConnectionCallback mMainActivityNotifier;
 
 
     // UI elements
-    AppCompatSeekBar mRedSeekBar ;
-    AppCompatSeekBar mGreenSeekBar ;
-    AppCompatSeekBar mBlueSeekBar ;
-    AppCompatSeekBar mFreqSeekBar ;
-    AppCompatCheckBox mStrobeOption ;
-    AppCompatCheckBox mPulseOption ;
-    EditText mDimmingTime ;
-
+    AppCompatSeekBar mRedSeekBar;
+    AppCompatSeekBar mGreenSeekBar;
+    AppCompatSeekBar mBlueSeekBar;
+    AppCompatSeekBar mFreqSeekBar;
+    AppCompatCheckBox mStrobeOption;
+    AppCompatCheckBox mPulseOption;
+    EditText mDimmingTime;
 
     // used to identify fragment in ViewPager in the main activity
-    private final String TAG = TwoFragment.class.getSimpleName() ;
+    private final String TAG = TwoFragment.class.getSimpleName();
 
     // Class that handles the message from the thread ( ManageConnectionThread )
-    private class UIMessageHandler extends Handler
-    {
-        public UIMessageHandler( Looper looper ) { super(looper) ; }
+    private class UIMessageHandler extends Handler {
+        public UIMessageHandler(Looper looper) {
+            super(looper);
+        }
 
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
-            if ( ManageConnectionThread.MESSAGE_CONN_LOST == msg.what) {
-                Log.v(TAG, "Received 'connection lost' message. Notifying "
-                        + MainActivity.class.getSimpleName()) ;
-                // Close the thread and socket
-                interruptThread();
-                closeSocket();
-
-                // Notify the MainActivity that connection was lost
-                mMainActivityNotifier.onConnectionLost();
+            if (ManageConnectionThread.MESSAGE_CONN_LOST == msg.what) {
+                onConnectionLostDetected();
             }
         }
 
@@ -79,7 +71,7 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
 
 
     public TwoFragment() {
-        mSocket = null ;
+        mSocket = null;
     }
 
     @Override
@@ -96,23 +88,23 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
         // Inflate the layout for this fragment
         View v_frag = inflater.inflate(R.layout.fragment_two, container, false);
 
-        mRedSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.red_slider) ;
-        mGreenSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.green_slider) ;
-        mBlueSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.blue_slider) ;
-        mFreqSeekBar = (AppCompatSeekBar)v_frag.findViewById(R.id.strobe_slider) ;
+        mRedSeekBar = (AppCompatSeekBar) v_frag.findViewById(R.id.red_slider);
+        mGreenSeekBar = (AppCompatSeekBar) v_frag.findViewById(R.id.green_slider);
+        mBlueSeekBar = (AppCompatSeekBar) v_frag.findViewById(R.id.blue_slider);
+        mFreqSeekBar = (AppCompatSeekBar) v_frag.findViewById(R.id.strobe_slider);
 
-        mStrobeOption = (AppCompatCheckBox)v_frag.findViewById(R.id.strobe_opt_checkbox) ;
-        mPulseOption = (AppCompatCheckBox)v_frag.findViewById(R.id.pulse_opt_checkbox) ;
-        mDimmingTime = (EditText)v_frag.findViewById(R.id.pulse_opt_time) ;
+        mStrobeOption = (AppCompatCheckBox) v_frag.findViewById(R.id.strobe_opt_checkbox);
+        mPulseOption = (AppCompatCheckBox) v_frag.findViewById(R.id.pulse_opt_checkbox);
+        mDimmingTime = (EditText) v_frag.findViewById(R.id.pulse_opt_time);
 
-        return v_frag ;
+        return v_frag;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         //  IMPORTANT! Update Fragment in the list in MainActivity ( after conf. change )
-        ((MainActivity)mMainActivityNotifier).getViewPagerAdapter()
+        ((MainActivity) mMainActivityNotifier).getViewPagerAdapter()
                 .updateItemByName(getString(R.string.tab_control), this);
     }
 
@@ -121,24 +113,29 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     public void onStart() {
         super.onStart();
 
-        initUIActions() ;
+        initUIActions();
+
+        // disable all UI elements on start
+        boolean isConnected = ((MainActivity)mMainActivityNotifier).getConnectionStatus();
+        setViewAndChildrenEnabled(isConnected) ;
     }
 
     @Override
     public void onDestroy() {
 
-        if (mSocket != null)
-        {
-            Log.v(TAG, "onDestroy(). Closing the connection.") ;
-            try { mSocket.close(); } catch ( IOException e ) { }
-            mSocket = null ;
+        if (mSocket != null) {
+            Log.v(TAG, "onDestroy(). Closing the connection.");
+            try {
+                mSocket.close();
+            } catch (IOException e) {
+            }
+            mSocket = null;
         }
 
-        if ((mManageThread != null) && (mManageThread.isAlive()))
-        {
-            Log.v(TAG, "onDestroy(). Interrupting the thread.") ;
+        if ((mManageThread != null) && (mManageThread.isAlive())) {
+            Log.v(TAG, "onDestroy(). Interrupting the thread.");
             interruptThread();
-            mManageThread = null ;
+            mManageThread = null;
         }
 
 
@@ -151,41 +148,37 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
     public void onAttach(Context context) {
         super.onAttach(context);
         // Always have valid pointer to the main Activity
-        mMainActivityNotifier = (MainActivityControlConnectionCallback)context ;
+        mMainActivityNotifier = (MainActivityControlConnectionCallback) context;
 
         // Create message queue handler fo this ( UI Thread's ) queue
-        mMainQueue = new UIMessageHandler( context.getMainLooper() ) ;
+        mMainQueue = new UIMessageHandler(context.getMainLooper());
 
         // get new looper for main UI thread and pass it to the thread only if it exists and is running
-        if ( (mManageThread != null) && (mManageThread.isAlive()))
-        {
-            mManageThread.updateParentQueueHandler( mMainQueue );
+        if ((mManageThread != null) && (mManageThread.isAlive())) {
+            mManageThread.updateParentQueueHandler(mMainQueue);
         }
     }
 
     @Override
-    public void onConnected(BluetoothSocket btSocket)
-    {
-        Log.v(TAG, "Received onConnected() signal.") ;
+    public void onConnected(BluetoothSocket btSocket) {
+        Log.v(TAG, "Received onConnected() signal.");
 
         // If the null socket received
-        if ( btSocket == null )     return ;
+        if (btSocket == null) return;
 
         // if the socket has already opened and/or thread is running then close.
-        if ( (mSocket != null) && (mManageThread != null) )
-        {
+        if ((mSocket != null) && (mManageThread != null)) {
             Log.d(TAG, "Unusual situation detected."
-                    + "Socket and Thread ("+mManageThread.getId()
-                    +") already exist. Trying to close them.");
+                    + "Socket and Thread (" + mManageThread.getId()
+                    + ") already exist. Trying to close them.");
             this.closeSocket();
             this.interruptThread();
         }
 
-        Log.v(TAG, "Trying to open streams and create new thread.") ;
+        Log.v(TAG, "Trying to open streams and create new thread.");
         // Assign the socket
-        mSocket = btSocket ;
-        try
-        {
+        mSocket = btSocket;
+        try {
             InputStream inputStream = mSocket.getInputStream();
             OutputStream outputStream = mSocket.getOutputStream();
 
@@ -196,73 +189,97 @@ public class TwoFragment extends Fragment implements TwoFragmentConnectionCallba
                     outputStream,
                     mMainQueue
             );
-            mManageThread.start() ;
+            mManageThread.start();
 
             // get the handler to the message queue
             mManageQueue = mManageThread.getHandler();
 
+            // set view's UI enabled
+            setViewAndChildrenEnabled(true);
         }
-        catch( IOException ioe )
-        {
-            Log.e(TAG, "Cannot get input/output streams!") ;
+        catch (IOException ioe) {
+            Log.e(TAG, "Cannot get input/output streams!");
         }
     }
 
     @Override
-    public void onDisconnecting()
-    {
-        Log.v(TAG, "Received onDisconnecting() signal. Closing the thread and the socket.") ;
-
+    public void onDisconnecting() {
+        Log.v(TAG, "Received onDisconnecting() signal. Closing the thread and the socket.");
         // Stop the thread
-        interruptThread() ;
+        interruptThread();
 
         // Close the connection
-        closeSocket() ;
+        closeSocket();
+
+        setViewAndChildrenEnabled(false);
     }
 
-
-    private void closeSocket()
+    /* This method is called when received onConnectionLost message from the thread*/
+    private void onConnectionLostDetected()
     {
-        if ( mSocket == null ) return ;
+        Log.v(TAG, "Received 'connection lost' message. Notifying "
+                + MainActivity.class.getSimpleName());
+        // Close the thread and socket
+        interruptThread();
+        closeSocket();
+
+        // Notify the MainActivity that connection was lost
+        mMainActivityNotifier.onConnectionLost();
+
+        // Disable all UI elements
+        setViewAndChildrenEnabled(false);
+    }
+    private void closeSocket() {
+        if (mSocket == null) return;
 
         Log.v(TAG, "Closing the IO streams and socket");
-        try
-        {
+        try {
             mSocket.getOutputStream().close();
             mSocket.getInputStream().close();
 
             mSocket.close();
             Log.v(TAG, "Streams and socket have been closed.");
-        } catch( Exception e ) {}
+        } catch (Exception e) {
+        }
 
-        mSocket = null ;
+        mSocket = null;
     }
 
-    private void interruptThread()
-    {
-        if ( mManageQueue != null ) { mManageQueue = null ; }
+    private void interruptThread() {
+        if (mManageQueue != null) {
+            mManageQueue = null;
+        }
 
         // closing the thread
-        if ( mManageThread != null )
-        {
-            Log.v(TAG, "Trying to interrupt the thread") ;
+        if (mManageThread != null) {
+            Log.v(TAG, "Trying to interrupt the thread");
 
             // send the interrupt signal to the thread
-            if ( mManageThread.isAlive())
-            {
+            if (mManageThread.isAlive()) {
                 mManageThread.interrupt();
                 Log.v(TAG, "Interrupt signal has been sent.");
                 // wait some time - thread can be interrupt on its own
-                try { mManageThread.join(300) ;}
-                catch(InterruptedException e) {}
-            }
-            else
-            {
-                Log.v(TAG, "The thread is already dead") ;
+                try {
+                    mManageThread.join(300);
+                } catch (InterruptedException e) {
+                }
+            } else {
+                Log.v(TAG, "The thread is already dead");
             }
             mManageThread = null;
 
         }
+    }
+
+    private void setViewAndChildrenEnabled( boolean enabled )
+    {
+        mRedSeekBar.setEnabled(enabled);
+        mGreenSeekBar.setEnabled(enabled);
+        mBlueSeekBar.setEnabled(enabled);
+        mDimmingTime.setEnabled(enabled);
+        mFreqSeekBar.setEnabled(enabled);
+        mPulseOption.setEnabled(enabled);
+        mStrobeOption.setEnabled(enabled);
     }
 
     private void initUIActions()
